@@ -1,0 +1,121 @@
+// This is the input texture/bitmap that will be deformed.
+// It's typically the content of the Composable the shader is applied to.
+uniform shader inputShader;
+
+// The resolution (width, height) of the area where the shader is applied, in pixels.
+// Used for accurate coordinate calculations.
+uniform float2 uResolution;
+
+// The current animation time, in seconds. This value advances each frame,
+// driving the wave's propagation and damping.
+uniform float uTime;
+
+// Maximum number of waves the shader can process simultaneously.
+// This must match the size of the uniform arrays passed from Kotlin.
+const int MAX_WAVES = 20;
+
+// The actual number of active waves currently being processed (<= MAX_WAVES).
+uniform int uNumWaves;
+
+// Arrays holding the parameters for each active wave.
+// These are populated by the Kotlin code.
+uniform float2 uWaveOrigins[MAX_WAVES];     // (x, y) coordinates of the wave's origin.
+uniform float uWaveAmplitudes[MAX_WAVES];   // Initial amplitude of the wave.
+uniform float uWaveFrequencies[MAX_WAVES];  // Frequency of the wave (how many cycles per unit distance).
+uniform float uWaveSpeeds[MAX_WAVES];       // Propagation speed of the wave (pixels per second).
+uniform float uWaveStartTimes[MAX_WAVES];   // Time (in seconds) when the wave was created.
+
+// Global damping factor applied to all waves.
+// Controls how quickly wave amplitude diminishes over time.
+uniform float uGlobalDamping;
+
+// Minimum amplitude threshold. Waves whose calculated amplitude falls below this
+// value will have no effect on the pixels.
+uniform float uMinAmplitudeThreshold;
+
+// Define PI for mathematical calculations.
+float PI = 3.141592653589793;
+
+/**
+ * The main entry point for the fragment shader. This function is executed for every pixel
+ * on the screen (or the target drawing surface).
+ *
+ * @param fragCoord The absolute (x, y) coordinate of the current pixel being processed, in pixels.
+ * @return The final color for the current pixel, typically sampled from the inputShader
+ * after applying the calculated deformation.
+ */
+half4 main(float2 fragCoord) {
+    // 'fragCoord' represents the current pixel's position, which is the 'point'
+    // in the original `calculateDeformation` function.
+    float2 point = fragCoord;
+
+    // Initialize the total offset for the current pixel to zero.
+    // This will accumulate the deformation effect from all active waves.
+    float2 totalOffset = float2(0.0, 0.0);
+
+    // Iterate through all active waves (up to MAX_WAVES).
+    for (int i = 0; i < MAX_WAVES; i++) {
+        if (i >= uNumWaves) continue;
+        // Retrieve parameters for the current wave from the uniform arrays.
+        float waveStartTime = uWaveStartTimes[i];
+        float waveAmplitude = uWaveAmplitudes[i];
+        float waveFrequency = uWaveFrequencies[i];
+        float waveSpeed = uWaveSpeeds[i];
+        float2 waveOrigin = uWaveOrigins[i];
+
+        // Calculate the elapsed time for this specific wave since its creation.
+        float elapsed = uTime - waveStartTime;
+
+        // Calculate the vector from the wave's origin to the current pixel,
+        // and then its magnitude (distance).
+        float2 diff = point - waveOrigin;
+        float distance = length(diff); // Equivalent to `Offset.getLength()`
+
+        // Calculate how far the wave front has propagated.
+        float waveFront = waveSpeed * elapsed;
+
+        // Calculate the relative distance from the wave front.
+        // If relDist > 0, the wave hasn't reached this pixel yet.
+        float relDist = distance - waveFront;
+
+        // Optimization: If the wave hasn't reached this pixel, skip to the next wave.
+        if (relDist > 0.0) {
+            continue;
+        }
+
+        // Calculate angular frequency (omega) and wave number (k).
+        float omega = waveFrequency * 2.0 * PI;
+        float k = omega / waveSpeed;
+
+        // Calculate the current amplitude of the wave, considering damping over time.
+        // `pow(base, exponent)` is used for exponential damping.
+        float currentAmplitude = waveAmplitude * pow(uGlobalDamping, elapsed);
+
+        // Optimization: If the current amplitude is too low, its effect is negligible.
+        // Skip this wave for the current pixel.
+        if (currentAmplitude < uMinAmplitudeThreshold) {
+            continue;
+        }
+
+        // Calculate the phase of the wave at this pixel and time.
+        float phase = k * distance - omega * elapsed;
+
+        // Calculate the actual displacement magnitude (wave effect) at this pixel.
+        // `sin` function creates the ripple peaks and troughs.
+        float waveEffect = sin(phase) * currentAmplitude;
+
+        // Determine the direction of the deformation.
+        // It's a normalized vector pointing from the wave origin to the current pixel.
+        float2 direction = float2(0.0, 0.0);
+        if (distance > 0.0) {
+            direction = diff / distance; // Normalize the difference vector
+        }
+
+        // Accumulate the deformation offset from this wave to the total.
+        totalOffset += direction * waveEffect;
+    }
+
+    // Finally, sample the `inputShader` (your bitmap) at the deformed coordinates.
+    // `fragCoord + totalOffset` gives the new, shifted position to fetch the color from.
+    return inputShader.eval(fragCoord + totalOffset);
+}
