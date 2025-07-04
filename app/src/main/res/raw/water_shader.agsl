@@ -45,8 +45,7 @@ float PI = 3.141592653589793;
  * after applying the calculated deformation.
  */
 half4 main(float2 fragCoord) {
-    // 'fragCoord' represents the current pixel's position, which is the 'point'
-    // in the original `calculateDeformation` function.
+    // 'fragCoord' represents the current pixel's position
     float2 point = fragCoord;
 
     // Initialize the total offset for the current pixel to zero.
@@ -115,7 +114,7 @@ half4 main(float2 fragCoord) {
         totalOffset += direction * waveEffect;
     }
 
-    // Finally, sample the `inputShader` (your bitmap) at the deformed coordinates.
+    // Finally, sample the `inputShader` (the bitmap) at the deformed coordinates.
     // `fragCoord + totalOffset` gives the new, shifted position to fetch the color from.
     return inputShader.eval(fragCoord + totalOffset);
 }
