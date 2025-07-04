@@ -43,10 +43,11 @@ Simulates realistic ripples and refractions on a bitmap using a dynamic AGSL sha
   
 - **Component design**: `WaterEffectComposable` wraps the canvas, touch handler, and shader logic cleanly. The system is modular, reactive, and ready for reuse or combination with other effects.
 
+--
 
-
-| Water Effect 1 | Water Effect 2 | Water Effect 3 | 
-| ![WE1](screenshots/water1.gif) | ![WE2](screenshots/water2.gif) | ![WE3](screenshots/water3.gif) |
+| Water Effect Shader 1 | Water Effect Shader 2 | Water Effect Shader 3 | 
+|:---:|:---:|:---:|
+| ![P1](screenshots/water1.gif) | ![P2a](screenshots/water2.gif) |  ![P2a](screenshots/water3.gif) |
 
 
 ---
