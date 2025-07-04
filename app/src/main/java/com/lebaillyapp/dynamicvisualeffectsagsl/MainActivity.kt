@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             //default bitmap
-            val bitmap = ImageBitmap.imageResource(id = R.drawable.demopic_c)
+            val bitmap = ImageBitmap.imageResource(id = R.drawable.demopic_k)
 
             DynamicVisualEffectsAGSLTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

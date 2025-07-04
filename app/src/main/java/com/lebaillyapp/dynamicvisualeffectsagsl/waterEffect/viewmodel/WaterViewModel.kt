@@ -43,7 +43,7 @@ class WaterViewModel : ViewModel() {
     private val initialFrequency = 3f
 
     /** Initial speed for newly created waves (pixels per second) */
-    private val initialSpeed = 350f//400f
+    private val initialSpeed = 400f//400f
 
     /** Tracks last positions per pointerId for distance-based emission control */
     private val lastPositions = mutableMapOf<Int, Offset>()
