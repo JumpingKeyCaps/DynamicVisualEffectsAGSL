@@ -23,6 +23,25 @@ The goal is to demonstrate the power of shaders combined with **touch input** an
 
 ---
 
+## 🎯 PoC Objectives
+
+- **🧠 AGSL Mastery**: Master complex fragment shaders and animation logic.
+- **🖼️ Visual Quality**: Aim for realism or high stylization per effect.
+- **🧩 Interactivity**: Link shaders to touch + motion sensors.
+- **⚙️ Performance**: Keep smooth framerate, minimize costly ops.
+- **🔧 Modularity**: Easily combine or add new shader effects.
+
+---
+
+## 🔧 Technologies & Tools
+
+- Kotlin + Jetpack Compose  
+- AGSL shader (android 13+ only)
+- Coroutines and State management for animation and interaction  
+- Math & trigonometry for wave modeling  
+
+---
+
 ## 🚀 Implemented / In Progress Features
 
 This PoC is structured around four major graphic effects, each designed to be manipulated by specific interactions.
@@ -94,30 +113,6 @@ Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on w
 
 ---
 
-## 🎯 PoC Objectives
-
-- **🧠 AGSL Mastery**: Master complex fragment shaders and animation logic.
-- **🖼️ Visual Quality**: Aim for realism or high stylization per effect.
-- **🧩 Interactivity**: Link shaders to touch + motion sensors.
-- **⚙️ Performance**: Keep smooth framerate, minimize costly ops.
-- **🔧 Modularity**: Easily combine or add new shader effects.
-
----
-
-
-
-
-## 📸 Screenshots
-
-
-| Fire Effect 1 | Fire Effect 2 | Fire Effect 3 |
-|:---:|:---:|:---:|
-| Chromatic aberration Effect | Glitch Effect | Heat waves Effect |
-|:---:|:---:|:---:|
-| Plasma Effect | Iridescence Effect | Aura Effect |
-|:---:|:---:|:---:|
-
----
 
 ## 🛠️ Detailed Next Steps
 
@@ -167,13 +162,6 @@ Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on w
 
 ---
 
-## 🔧 Technologies & Tools
 
-- Kotlin + Jetpack Compose  
-- AGSL shader (android 13+ only)
-- Coroutines and State management for animation and interaction  
-- Math & trigonometry for wave modeling  
-
----
 
 
