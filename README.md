@@ -31,14 +31,23 @@ This PoC is structured around four major graphic effects, each designed to be ma
 
 ### 1. 💧 Water Effect *(Implemented)*
 
-Simulates ripples, refractions, and reflections on a bitmap, giving the impression that the screen's surface is covered in liquid.
+Simulates realistic ripples and refractions on a bitmap using a dynamic AGSL shader.
 
-- **Technical**:
-  - Deforms texture coordinates using a dynamic normal map or noise function.
-  - Refraction & reflection: blends bitmap color with environment map or color.
-- **Interaction**:
-  - Touch/drag generates waves.
-  - Strength/radius vary with gesture duration & speed.
+- **Shader logic**: Custom fragment shader deforms UVs based on a blend of up to 16 circular waves. Each wave is defined by center, amplitude, frequency, damping, and age.
+  
+- **Visual result**: The bitmap appears as a fluid surface, with natural-looking water ripples radiating from touch points. Deformations decay over time for smooth fading.
+  
+- **User interaction**: Touch or drag to spawn ripples. Multi-touch is fully supported — each gesture creates a separate wave. Wave parameters (amplitude, radius, decay) can be tuned.
+  
+- **Animation model**: Wave state is tracked in Compose and updated via `withFrameNanos`. Old waves are purged when their lifespan ends. The shader reacts in real-time.
+  
+- **Component design**: `WaterEffectComposable` wraps the canvas, touch handler, and shader logic cleanly. The system is modular, reactive, and ready for reuse or combination with other effects.
+
+
+
+| Water Effect 1 | Water Effect 2 | Water Effect 3 | 
+| ![WE1](screenshots/water1.gif) | ![WE2](screenshots/water2.gif) | ![WE3](screenshots/water3.gif) |
+
 
 ---
 
@@ -99,8 +108,7 @@ Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on w
 
 ## 📸 Screenshots
 
-| Water Effect 1 | Water Effect 2 | Water Effect 3 | 
-|:---:|:---:|:---:|
+
 | Fire Effect 1 | Fire Effect 2 | Fire Effect 3 |
 |:---:|:---:|:---:|
 | Chromatic aberration Effect | Glitch Effect | Heat waves Effect |
