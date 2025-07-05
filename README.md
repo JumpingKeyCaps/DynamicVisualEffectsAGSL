@@ -201,6 +201,21 @@ Creates glitch aesthetics by algorithmically "stretching" or reordering pixels i
 
 ---
 
+### 9. 🔍 Fisheye & Cathodic CRT Effect *(To Evaluate)*
+
+Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromatic aberration, and screen curvature.
+
+- **Technical**:  
+  - UV remapping for fisheye/pincushion distortion.  
+  - Animated scanlines and vignette.  
+  - RGB channel offset for chromatic aberration.  
+  - Optional glow or blur for phosphorescent look.
+
+- **Interaction**:  
+  - Device tilt or shake modulates distortion intensity and scanline flicker.
+
+---
+
 ### 📱 Sensor Integration
 
 - **Sensor Access**:
