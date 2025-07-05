@@ -37,6 +37,7 @@ The goal is to demonstrate the power of shaders combined with **touch input** an
 
 - Kotlin + Jetpack Compose  
 - AGSL shader (android 13+ only)
+- RuntimeShader / ShaderBrush
 - Coroutines and State management for animation and interaction  
 - Math & trigonometry for wave modeling  
 
