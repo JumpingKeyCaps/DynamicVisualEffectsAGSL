@@ -84,40 +84,8 @@ Generates realistic procedural flames that progressively "burn" and consume the 
 - **Interaction**:
   - Long-press or swipe-up to ignite.
   - Intensity/speed controlled by gesture frequency or pressure.
-
----
-
-### 3. 💾 Distortion & Glitch Art *(Coming Soon)*
-
-Creates digital-style visual noise like chromatic aberration, glitches, and heat waves.
-
-- **Technical**:
-  - **Chromatic aberration**: shift RGB channels via UV offsets.
-  - **Glitch**: block-based displacement, color inversion, static noise.
-  - **Heat waves**: soft animated UV warping using noise.
-- **Interaction**:
-  - Reacts to **tilt/shake/tap** (accelerometer & gyroscope).
-  - Shake = glitch bursts, tilt = continuous distortion.
-
----
-
-### 4. ✨ Luminous & Energy Effects *(Coming Soon)*
-
-Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on water.
-
-- **Technical**:
-  - **Iridescence**: Thin-film interference using angle-dependent color gradients.
-  - **Plasma/Aura**: Mix of noise + trig for energy visuals.
-- **Interaction**:
-  - Sensor-based view angle affects colors.
-  - Touch emits pulses or light bursts.
-
----
-
-
-## 🛠️ Detailed Next Steps
-
-### 🔥 Fire Shader Tasks
+ 
+####  Fire Shader Tasks
 
 - **Noise Integration**:
   - Use Perlin/Simplex (inline or pre-generated).
@@ -132,6 +100,105 @@ Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on w
 
 ---
 
+### 3. 💾 Distortion & Glitch Art *(Coming Soon)*
+
+Creates digital-style visual noise like chromatic aberration, glitches, and heat waves.
+
+- **Technical**:
+  - **Chromatic aberration**: shift RGB channels via UV offsets.
+  - **Glitch**: block-based displacement, color inversion, static noise.
+  - **Heat waves**: soft animated UV warping using noise.
+- **Interaction**:
+  - Reacts to **tilt/shake/tap** (accelerometer & gyroscope).
+  - Shake = glitch bursts, tilt = continuous distortion.
+ 
+#### Distortion Shaders Tasks
+
+- **Distortion Effects**:
+  - RGB offsets per channel (chromatic aberration).
+  - Glitch: UV jumps, color noise triggered by motion thresholds.
+
+
+---
+
+### 4. ✨ Luminous & Energy Effects *(Coming Soon)*
+
+Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on water.
+
+- **Technical**:
+  - **Iridescence**: Thin-film interference using angle-dependent color gradients.
+  - **Plasma/Aura**: Mix of noise + trig for energy visuals.
+- **Interaction**:
+  - Sensor-based view angle affects colors.
+  - Touch emits pulses or light bursts.
+ 
+#### Iridescence Shaders Tasks
+
+- **Iridescence Effects**:
+  - Compute view direction from gyro.
+  - Use dot product or trig mapping to modulate color spectrum.
+
+---
+
+### 5. 🧠 Pixel Sorting & Datamosh *(To Evaluate)*
+
+Creates glitch aesthetics by algorithmically "stretching" or reordering pixels in segments of the image.
+
+- **Technical**:
+  - Pixel sorting: Sort horizontal or vertical lines based on pixel luminance or hue.
+  - Block warping: Randomly shift image blocks (UV offset by region).
+  - Color bleeding: Optional chromatic offset during sorting.
+  - Artifacts: Simulate video decoding glitches using time-based block shifts.
+- **Interaction**:
+  - Triggered by tap/tilt/shake.
+  - Speed of shake affects glitch severity and block size.
+- **Notes**:
+  - Requires moderate GPU effort — not real-time sorting per frame unless small regions only.
+
+---
+
+### 6. ⚡ Electric Sparks & Lightning *(Coming Soon)*
+
+Generates stylized lightning bolts and crackling energy sparks across the screen.
+
+- **Technical**:
+  - Ray effect: Animate noise-based jagged lines from origin point.
+  - Glow pulse: Use radial blur for glow around spark lines.
+  - Flash animation: Sync light pulses with strike origin.
+- **Interaction**:
+  - Tap to emit spark.
+  - Shake triggers bigger lightning strike + screen flash.
+
+---
+
+### 7. 🌌 Glowing Particles & Fireflies *(Coming Soon)*
+
+A swarm of dynamic glowing dots (fireflies) that float and react to user gestures.
+
+- **Technical**:
+  - Particle position: Managed in Kotlin (Vec2 list) + passed as uniform array.
+  - Glow effect: Soft radial alpha + color gradient.
+  - Movement: Brownian / Perlin / orbit logic for drift.
+- **Interaction**:
+  - Tap/drag = attract or repel nearby particles.
+  - Shake = scatter all fireflies briefly.
+
+---
+
+### 5. 🌈 Holographic Effects *(Coming Soon)*
+
+Simulates holographic foil and rainbow diffraction effects with dynamic light refraction.
+
+- **Technical**:
+  - Angle-dependent rainbow gradients with smooth UV shifts.
+  - Layered noise + sine waves to mimic diffraction patterns.
+  - Specular highlights and subtle distortion for depth.
+- **Interaction**:
+  - Sensor-based view angle controls gradient movement.
+  - Touch creates shimmering pulses or rainbow flashes.
+
+---
+
 ### 📱 Sensor Integration
 
 - **Sensor Access**:
@@ -140,17 +207,6 @@ Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on w
   - Normalize, smooth, and convert to usable vectors.
 - **Shader Inputs**:
   - Pass vectors to shaders as `u_acceleration`, `u_orientation`.
-
----
-
-### 🎛️ Distortion & Iridescence Shaders
-
-- **Distortion Effects**:
-  - RGB offsets per channel (chromatic aberration).
-  - Glitch: UV jumps, color noise triggered by motion thresholds.
-- **Iridescence Effects**:
-  - Compute view direction from gyro.
-  - Use dot product or trig mapping to modulate color spectrum.
 
 ---
 
