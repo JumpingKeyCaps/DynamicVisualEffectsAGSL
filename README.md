@@ -140,20 +140,18 @@ Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on w
 
 ---
 
-### 5. 🧠 Pixel Sorting & Datamosh *(To Evaluate)*
 
-Creates glitch aesthetics by algorithmically "stretching" or reordering pixels in segments of the image.
+### 5. 🌈 Holographic Effects *(Coming Soon)*
+
+Simulates holographic foil and rainbow diffraction effects with dynamic light refraction.
 
 - **Technical**:
-  - Pixel sorting: Sort horizontal or vertical lines based on pixel luminance or hue.
-  - Block warping: Randomly shift image blocks (UV offset by region).
-  - Color bleeding: Optional chromatic offset during sorting.
-  - Artifacts: Simulate video decoding glitches using time-based block shifts.
+  - Angle-dependent rainbow gradients with smooth UV shifts.
+  - Layered noise + sine waves to mimic diffraction patterns.
+  - Specular highlights and subtle distortion for depth.
 - **Interaction**:
-  - Triggered by tap/tilt/shake.
-  - Speed of shake affects glitch severity and block size.
-- **Notes**:
-  - Requires moderate GPU effort — not real-time sorting per frame unless small regions only.
+  - Sensor-based view angle controls gradient movement.
+  - Touch creates shimmering pulses or rainbow flashes.
 
 ---
 
@@ -185,17 +183,21 @@ A swarm of dynamic glowing dots (fireflies) that float and react to user gesture
 
 ---
 
-### 5. 🌈 Holographic Effects *(Coming Soon)*
 
-Simulates holographic foil and rainbow diffraction effects with dynamic light refraction.
+### 8. 🧠 Pixel Sorting & Datamosh *(To Evaluate)*
+
+Creates glitch aesthetics by algorithmically "stretching" or reordering pixels in segments of the image.
 
 - **Technical**:
-  - Angle-dependent rainbow gradients with smooth UV shifts.
-  - Layered noise + sine waves to mimic diffraction patterns.
-  - Specular highlights and subtle distortion for depth.
+  - Pixel sorting: Sort horizontal or vertical lines based on pixel luminance or hue.
+  - Block warping: Randomly shift image blocks (UV offset by region).
+  - Color bleeding: Optional chromatic offset during sorting.
+  - Artifacts: Simulate video decoding glitches using time-based block shifts.
 - **Interaction**:
-  - Sensor-based view angle controls gradient movement.
-  - Touch creates shimmering pulses or rainbow flashes.
+  - Triggered by tap/tilt/shake.
+  - Speed of shake affects glitch severity and block size.
+- **Notes**:
+  - Requires moderate GPU effort — not real-time sorting per frame unless small regions only.
 
 ---
 
