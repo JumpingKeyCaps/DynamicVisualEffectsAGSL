@@ -212,7 +212,33 @@ Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromat
   - Optional glow or blur for phosphorescent look.
 
 - **Interaction**:  
-  - Device tilt or shake modulates distortion intensity and scanline flicker.
+  - Triggered by tap/tilt/shake.
+  - Speed of shake affects glitch severity and block size.
+
+---
+
+### 10. ❄️ Frosted Glass / Frost Effect
+
+Blurs and distorts the image as if viewed through frosted glass.
+
+- **Technical**:
+  - Multiple samples around each pixel with random offsets (approximate blur).
+  - Overlay of animated frost crystals using noise and fractal shapes.
+- **Interaction**:
+  - Touch to add frost, shake to reset.
+    
+---
+
+### 11. 🔆 Neon Glow & Outline
+
+Creates a colored glowing outline around shapes in the image.
+
+- **Technical**:
+  - Simplified Sobel edge detection on luminance.
+  - Blur and progressive coloring for glow effect.
+- **Interaction**:
+  - Glow intensity follows swipe velocity.
+
 
 ---
 
