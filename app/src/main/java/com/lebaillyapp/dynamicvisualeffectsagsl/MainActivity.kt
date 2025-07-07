@@ -8,16 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.tooling.preview.Preview
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
-import com.lebaillyapp.dynamicvisualeffectsagsl.waterEffect.composition.FireEffectScreen
-import com.lebaillyapp.dynamicvisualeffectsagsl.waterEffect.composition.HolographicEffectScreen
-import com.lebaillyapp.dynamicvisualeffectsagsl.waterEffect.composition.WaterEffectBitmapShader
+import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.HolographicEffectScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

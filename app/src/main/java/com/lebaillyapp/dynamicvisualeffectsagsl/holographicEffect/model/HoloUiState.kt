@@ -1,4 +1,4 @@
-package com.lebaillyapp.dynamicvisualeffectsagsl.waterEffect.model
+package com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.model
 
 data class HoloUiState(
     val tiltX: Float = 0f,

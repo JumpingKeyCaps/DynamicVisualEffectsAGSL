@@ -1,8 +1,8 @@
-package com.lebaillyapp.dynamicvisualeffectsagsl.waterEffect.viewmodel
+package com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lebaillyapp.dynamicvisualeffectsagsl.waterEffect.model.HoloUiState
+import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.model.HoloUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
