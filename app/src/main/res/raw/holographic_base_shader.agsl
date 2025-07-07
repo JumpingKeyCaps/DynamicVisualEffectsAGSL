@@ -1,0 +1,38 @@
+// language=AGSL
+
+uniform float2 resolution;
+uniform float2 imageSize;
+
+uniform float tiltX;
+uniform float tiltY;
+uniform float time;
+uniform float pulse;
+
+// Helper : adapte UV pour centerCrop comme ImageView.ScaleType.CENTER_CROP
+float2 getCenterCropUV(float2 fragCoord, float2 resolution, float2 imageSize) {
+    float screenRatio = resolution.x / resolution.y;
+    float imageRatio = imageSize.x / imageSize.y;
+
+    float2 uv = fragCoord / resolution;
+
+    if (screenRatio > imageRatio) {
+        float scale = imageRatio / screenRatio;
+        uv.y = (uv.y - 0.5) * scale + 0.5;
+    } else {
+        float scale = screenRatio / imageRatio;
+        uv.x = (uv.x - 0.5) * scale + 0.5;
+    }
+
+    return uv;
+}
+
+half4 main(float2 fragCoord) {
+    float2 uv = getCenterCropUV(fragCoord, resolution, imageSize);
+
+    // Exemple simple d’utilisation des paramètres pour moduler la couleur
+    float r = 0.5 + 0.5 * sin(uv.x * 10.0 + tiltX * 5.0 + time);
+    float g = 0.5 + 0.5 * sin(uv.y * 10.0 + 2.0 + tiltY * 5.0 + time * 0.5);
+    float b = 0.5 + 0.5 * sin((uv.x + uv.y) * 10.0 + 4.0 + pulse * 10.0);
+
+    return half4(r, g, b, 1.0);
+}
