@@ -1,38 +1,164 @@
-// language=AGSL
+// This is the input texture/bitmap that will be deformed with holographic effect.
+// It's typically the content of the Composable the shader is applied to.
+uniform shader inputShader;
 
-uniform float2 resolution;
-uniform float2 imageSize;
+// The resolution (width, height) of the area where the shader is applied, in pixels.
+// Used for accurate coordinate calculations.
+uniform float2 uResolution;
 
-uniform float tiltX;
-uniform float tiltY;
-uniform float time;
-uniform float pulse;
+// The current animation time, in seconds. This value advances each frame,
+// driving the holographic shimmer animation.
+uniform float uTime;
 
-// Helper : adapte UV pour centerCrop comme ImageView.ScaleType.CENTER_CROP
-float2 getCenterCropUV(float2 fragCoord, float2 resolution, float2 imageSize) {
-    float screenRatio = resolution.x / resolution.y;
-    float imageRatio = imageSize.x / imageSize.y;
+// Intensity of the holographic effect (0.0 to 1.0+)
+uniform float uIntensity;
 
-    float2 uv = fragCoord / resolution;
+// Speed of the shimmer animation
+uniform float uShimmerSpeed;
 
-    if (screenRatio > imageRatio) {
-        float scale = imageRatio / screenRatio;
-        uv.y = (uv.y - 0.5) * scale + 0.5;
-    } else {
-        float scale = screenRatio / imageRatio;
-        uv.x = (uv.x - 0.5) * scale + 0.5;
-    }
+// Tilt parameters for dynamic reflection simulation
+uniform float uTiltX;
+uniform float uTiltY;
 
-    return uv;
+// Aspect ratio for proper coordinate normalization
+uniform float uAspectRatio;
+
+// Define PI for mathematical calculations
+float PI = 3.141592653589793;
+
+/**
+ * Generate a rainbow color based on a normalized value (0.0 to 1.0)
+ * Creates smooth transitions through the spectrum
+ */
+half3 rainbow(float t) {
+    t = fract(t); // Ensure t is in [0, 1]
+    float r = abs(t * 6.0 - 3.0) - 1.0;
+    float g = 2.0 - abs(t * 6.0 - 2.0);
+    float b = 2.0 - abs(t * 6.0 - 4.0);
+    return clamp(half3(r, g, b), 0.0, 1.0);
 }
 
+/**
+ * Create a smooth noise function for organic shimmer patterns
+ */
+float noise(float2 p) {
+    return fract(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+/**
+ * Smooth noise function with interpolation
+ */
+float smoothNoise(float2 p) {
+    float2 i = floor(p);
+    float2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f); // Smooth interpolation
+
+    float a = noise(i);
+    float b = noise(i + float2(1.0, 0.0));
+    float c = noise(i + float2(0.0, 1.0));
+    float d = noise(i + float2(1.0, 1.0));
+
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+/**
+ * Create holographic interference patterns
+ */
+float holographicPattern(float2 uv, float time) {
+    // Multiple interference patterns at different scales and speeds
+    float pattern1 = sin(uv.x * 20.0 + time * 3.0) * sin(uv.y * 15.0 + time * 2.0);
+    float pattern2 = sin(uv.x * 35.0 - time * 4.0) * sin(uv.y * 25.0 + time * 3.0);
+    float pattern3 = sin(uv.x * 50.0 + time * 5.0) * sin(uv.y * 40.0 - time * 2.5);
+
+    return (pattern1 + pattern2 * 0.5 + pattern3 * 0.3) / 1.8;
+}
+
+/**
+ * The main entry point for the fragment shader. This function is executed for every pixel
+ * on the screen (or the target drawing surface).
+ *
+ * @param fragCoord The absolute (x, y) coordinate of the current pixel being processed, in pixels.
+ * @return The final color for the current pixel with holographic effect applied.
+ */
 half4 main(float2 fragCoord) {
-    float2 uv = getCenterCropUV(fragCoord, resolution, imageSize);
+    // Normalize coordinates to [0, 1] range
+    float2 uv = fragCoord / uResolution;
 
-    // Exemple simple d’utilisation des paramètres pour moduler la couleur
-    float r = 0.5 + 0.5 * sin(uv.x * 10.0 + tiltX * 5.0 + time);
-    float g = 0.5 + 0.5 * sin(uv.y * 10.0 + 2.0 + tiltY * 5.0 + time * 0.5);
-    float b = 0.5 + 0.5 * sin((uv.x + uv.y) * 10.0 + 4.0 + pulse * 10.0);
+    // Adjust for aspect ratio
+    float2 centeredUv = uv - 0.5;
+    centeredUv.x *= uAspectRatio;
 
-    return half4(r, g, b, 1.0);
+    // Sample the original image
+    half4 originalColor = inputShader.eval(fragCoord);
+
+    // === HOLOGRAPHIC SHIMMER CALCULATION ===
+
+    // Create diagonal shimmer bands
+    float shimmerTime = uTime * uShimmerSpeed;
+    float shimmerAngle = 0.7854; // 45 degrees in radians
+    float shimmerPos = (centeredUv.x * cos(shimmerAngle) + centeredUv.y * sin(shimmerAngle)) * 3.0;
+
+    // Moving shimmer wave
+    float shimmerWave = sin(shimmerPos + shimmerTime * 2.0) * 0.5 + 0.5;
+
+    // Add secondary shimmer for more complexity
+    float shimmerWave2 = sin(shimmerPos * 1.3 - shimmerTime * 1.5) * 0.3 + 0.7;
+
+    // Combine shimmer waves
+    float shimmer = shimmerWave * shimmerWave2;
+
+    // === SPECTRAL DISPERSION ===
+
+    // Calculate spectral shift based on position and tilt
+    float spectralShift = centeredUv.x * uTiltX + centeredUv.y * uTiltY;
+    spectralShift += smoothNoise(uv * 10.0 + uTime * 0.5) * 0.1;
+
+    // Create rainbow colors based on spectral shift
+    half3 spectrumColor = rainbow(spectralShift + shimmer * 0.5 + uTime * 0.1);
+
+    // === INTERFERENCE PATTERNS ===
+
+    // Create holographic interference
+    float interference = holographicPattern(uv, shimmerTime);
+    interference = (interference + 1.0) * 0.5; // Normalize to [0, 1]
+
+    // Modulate spectrum with interference
+    spectrumColor *= interference;
+
+    // === DYNAMIC REFLECTION ===
+
+    // Calculate reflection intensity based on viewing angle simulation
+    float2 viewVector = normalize(centeredUv + float2(uTiltX, uTiltY));
+    float reflectionIntensity = 1.0 - dot(viewVector, viewVector) * 0.5;
+    reflectionIntensity = max(0.0, reflectionIntensity);
+
+    // Pulse the reflection with time
+    float pulse = sin(uTime * 1.5) * 0.1 + 0.9;
+    reflectionIntensity *= pulse;
+
+    // === FINAL COLOR COMPOSITION ===
+
+    // Calculate overall holographic intensity
+    float holoIntensity = shimmer * interference * reflectionIntensity * uIntensity;
+
+    // Apply chromatic aberration for more realistic effect
+    float aberration = holoIntensity * 0.02;
+    half4 rShift = inputShader.eval(fragCoord + float2(aberration, 0.0));
+    half4 gShift = inputShader.eval(fragCoord);
+    half4 bShift = inputShader.eval(fragCoord - float2(aberration, 0.0));
+
+    half4 chromaticColor = half4(rShift.r, gShift.g, bShift.b, originalColor.a);
+
+    // Blend original image with holographic effect
+    half3 finalColor = mix(chromaticColor.rgb, spectrumColor, holoIntensity * 0.4);
+
+    // Add additional sparkle highlights
+    float sparkle = smoothNoise(uv * 50.0 + uTime * 2.0);
+    sparkle = pow(sparkle, 8.0) * holoIntensity;
+    finalColor += half3(sparkle, sparkle, sparkle) * 0.5;
+
+    // Ensure we don't exceed 1.0 and maintain alpha
+    finalColor = clamp(finalColor, 0.0, 1.0);
+
+    return half4(finalColor, originalColor.a);
 }
