@@ -11,8 +11,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
+import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.HolographicEffectBitmapShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
-import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.HolographicEffectScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             //default bitmap
-            val bitmap = ImageBitmap.imageResource(id = R.drawable.catcat)
+            val bitmap = ImageBitmap.imageResource(id = R.drawable.demopic_c)
 
             DynamicVisualEffectsAGSLTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -60,11 +60,17 @@ class MainActivity : ComponentActivity() {
                         */
 
                         // [5] - Holographic Effect composition screen
-                        HolographicEffectScreen(
-                            modifier = Modifier.fillMaxSize(),
+
+
+                        HolographicEffectBitmapShader(
                             bitmap = bitmap,
-                            shaderResId = R.raw.holographic_base_shader
+                            shaderResId = R.raw.holographic_base_shader,
+                            intensity = 0.8f,        // Intensité globale
+                            shimmerSpeed = 1.2f,     // Vitesse d'animation
+                            tiltAngle = 0.5f         // Angle de base pour les reflets
                         )
+
+
 
                     }
                 }
