@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.EnhancedHolographicEffectShader
+import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.UltraRealisticHolographicEffectShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
 import kotlin.math.cos
 import kotlin.math.sin
@@ -69,7 +70,7 @@ class MainActivity : ComponentActivity() {
 
                         // [5] - Holographic Effect composition screen
 
-                    /**
+                    /** v1
                         HolographicEffectBitmapShader(
                             bitmap = bitmap,
                             shaderResId = R.raw.holographic_base_shader,
@@ -78,6 +79,9 @@ class MainActivity : ComponentActivity() {
                             tiltAngle = 0.5f         // Angle de base pour les reflets
                         )
                         */
+
+
+                        /** v2
 
                         EnhancedHolographicEffectShader(
                             modifier = Modifier.fillMaxSize(),
@@ -94,6 +98,45 @@ class MainActivity : ComponentActivity() {
                             sparkleIntensity = 0.7f,
                             chromaticAberrationStrength = 20.0f
                         )
+                        */
+
+
+                        UltraRealisticHolographicEffectShader(
+                            modifier = Modifier.fillMaxSize(),
+                            bitmap = bitmap,
+                            shaderResId = R.raw.holographic_realistic_shader,
+
+                            // Paramètres optimisés pour un rendu ultra-réaliste
+                            effectIntensity = 0.8f,
+                            shininess = 80.0f,
+                            roughness = 0.1f,
+                            fresnelPower = 5.0f,
+
+                            rainbowScale = 2.5f,
+                            rainbowOffset = 0.2f,
+                            spectrumLayers = 3.0f,
+
+                            normalStrength = 0.3f,
+                            microDetailScale = 50.0f,
+
+                            subsurfaceStrength = 0.3f,
+                            subsurfaceThickness = 0.5f,
+
+                            patternDensity = 40.0f,
+                            patternVisibility = 0.6f,
+
+                            sparkleDensity = 120.0f,
+                            sparklePower = 15.0f,
+                            sparkleIntensity = 0.4f,
+                            sparkleSpeed = 1.0f,
+
+                            chromaticAberrationStrength = 0.003f,
+
+                            animationSpeed = 1.0f,
+                            pulseIntensity = 0.1f
+                        )
+
+
 
 
 
