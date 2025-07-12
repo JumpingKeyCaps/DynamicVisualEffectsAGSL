@@ -25,6 +25,7 @@ uniform float uSpectrumLayers;
 // Normales et micro-relief
 uniform float uNormalStrength;
 uniform float uMicroDetailScale;
+uniform float uMetallic;
 
 // Subsurface scattering
 uniform float uSubsurfaceStrength;
@@ -77,14 +78,15 @@ float fbm(float2 p) {
     float value = 0.0;
     float amplitude = 0.5;
     float frequency = 1.0;
-    const int fixedOctaves = 4;
+    const int fixedOctaves = 4; // Garde cette constante, c'est important !
 
     for (int i = 0; i < fixedOctaves; i++) {
         value += amplitude * noise(p * frequency);
         amplitude *= 0.5;
         frequency *= 2.0;
     }
-    return value;
+    // C'est cette ligne qui doit être changée pour centrer la sortie
+    return (value - 0.5) * 2.0;
 }
 
 /**
@@ -125,12 +127,19 @@ float3 calculatePerturbedNormal(float2 uv, float3 baseNormal) {
     float heightU = fbm((uv + float2(0.0, texelSize.y)) * uMicroDetailScale);
 
     // Calcul des normales basées sur les gradients
-    float3 normal = baseNormal;
-    normal.x += (heightL - heightR) * uNormalStrength;
-    normal.y += (heightD - heightU) * uNormalStrength;
-    normal.z += microDetail * uNormalStrength * 0.5;
+     // Calcul des normales basées sur les gradients
+        float3 normal = baseNormal; // (0.0, 0.0, 1.0)
 
-    return normalize(normal);
+        // NOUVEAU : Multiplie par un facteur plus élevé pour voir l'effet
+        // Remplace la ligne existante par ceci :
+        normal.x += (heightL - heightR) * uNormalStrength * uNormalStrength; // Augmenter l'impact de X
+        normal.y += (heightD - heightU) * uNormalStrength * uNormalStrength; // Augmenter l'impact de Y
+
+        // Reste inchangé :
+        float xy_strength_sq = normal.x * normal.x + normal.y * normal.y;
+        normal.z = sqrt(max(0.0, 1.0 - xy_strength_sq));
+
+        return normalize(normal);
 }
 
 /**
@@ -276,9 +285,13 @@ half4 main(float2 fragCoord) {
     float3 baseNormal = float3(0.0, 0.0, 1.0);
     float3 perturbedNormal = calculatePerturbedNormal(uv, baseNormal);
 
+
+
     // Étape 6: Visualisation des normales perturbées
     // Attendu: Surface avec texture de bruit subtile
     // return half4(perturbedNormal * 0.5 + 0.5, 1.0);
+
+
 
     // Direction de lumière (simulation)
     float3 lightDirection = normalize(float3(0.5, 0.5, 1.0));
@@ -289,13 +302,13 @@ half4 main(float2 fragCoord) {
         viewDirection,
         lightDirection,
         originalColor.rgb,
-        0.8, // Métallique pour effet holographique
+        uMetallic, // Métallique pour effet holographique
         uRoughness
     );
 
     // Étape 7: Visualisation PBR seul
     // Attendu: Éclairage métallique réaliste
-    // return half4(pbrLighting, 1.0);
+   //  return half4(pbrLighting, 1.0);
 
     // Calcul du rainbow multicouche
     half3 rainbowEffect = calculateMultiLayerRainbow(uv, viewDirection, uTime);
@@ -317,7 +330,7 @@ half4 main(float2 fragCoord) {
 
     // Étape 10: Rainbow modulé par Fresnel
     // Attendu: Arc-en-ciel principalement sur les bords
-    // return half4(rainbowEffect, 1.0);
+     return half4(rainbowEffect, 1.0);
 
     // Subsurface scattering
     half3 subsurfaceEffect = calculateSubsurfaceScattering(
