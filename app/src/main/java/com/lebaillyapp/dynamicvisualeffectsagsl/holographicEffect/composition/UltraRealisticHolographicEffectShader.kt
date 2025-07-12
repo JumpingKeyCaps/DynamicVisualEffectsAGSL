@@ -62,6 +62,7 @@ fun UltraRealisticHolographicEffectShader(
     // Motifs et détails
     patternDensity: Float = 40.0f,
     patternVisibility: Float = 0.6f,
+    metallic: Float = 2.0f,
 
     // Paillettes
     sparkleDensity: Float = 120.0f,
@@ -194,6 +195,7 @@ fun UltraRealisticHolographicEffectShader(
             // Normales et micro-relief
             shader.setFloatUniform("uNormalStrength", normalStrength)
             shader.setFloatUniform("uMicroDetailScale", microDetailScale)
+            shader.setFloatUniform("uMetallic", metallic)
 
             // Subsurface scattering
             shader.setFloatUniform("uSubsurfaceStrength", subsurfaceStrength)
