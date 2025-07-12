@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             //default bitmap
-            val bitmap = ImageBitmap.imageResource(id = R.drawable.demopic_d)
+            val bitmap = ImageBitmap.imageResource(id = R.drawable.demopic_h)
 
             DynamicVisualEffectsAGSLTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -109,14 +109,15 @@ class MainActivity : ComponentActivity() {
                             // Paramètres optimisés pour un rendu ultra-réaliste
                             effectIntensity = 0.8f,
                             shininess = 80.0f,
-                            roughness = 0.1f,
-                            fresnelPower = 5.0f,
+                            roughness = 0.6f, // rugositer (force de leffet metalic)
+                            fresnelPower = 3.0f,
 
                             rainbowScale = 2.5f,
                             rainbowOffset = 0.2f,
                             spectrumLayers = 3.0f,
 
-                            normalStrength = 0.3f,
+                            normalStrength = 2.0f, // intensité du relief bruit (degradation de la carte)
+                            metallic = 2.0f, // intensité du relief metalic
                             microDetailScale = 50.0f,
 
                             subsurfaceStrength = 0.3f,
