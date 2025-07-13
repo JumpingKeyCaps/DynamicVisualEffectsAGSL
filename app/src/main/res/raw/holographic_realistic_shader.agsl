@@ -78,7 +78,7 @@ float fbm(float2 p) {
     float value = 0.0;
     float amplitude = 0.5;
     float frequency = 1.0;
-    const int fixedOctaves = 2; // Garde cette constante, c'est important ! (plus ya doctave plus le gpu va taffer fort!)
+    const int fixedOctaves = 4; // Garde cette constante, c'est important ! (plus ya doctave plus le gpu va taffer fort!)
 
     for (int i = 0; i < fixedOctaves; i++) {
         value += amplitude * noise(p * frequency);
@@ -330,7 +330,7 @@ half4 main(float2 fragCoord) {
 
     // Étape 10: Rainbow modulé par Fresnel
     // Attendu: Arc-en-ciel principalement sur les bords
-     return half4(rainbowEffect, 1.0);
+   //  return half4(rainbowEffect, 1.0);
 
     // Subsurface scattering
     half3 subsurfaceEffect = calculateSubsurfaceScattering(
@@ -343,7 +343,7 @@ half4 main(float2 fragCoord) {
 
     // Étape 11: Visualisation subsurface
     // Attendu: Image avec effet de profondeur chaud
-    // return half4(subsurfaceEffect, 1.0);
+  //   return half4(subsurfaceEffect, 1.0);
 
     // Aberration chromatique
     float aberrationAmount = reflectionIntensity * uChromaticAberrationStrength;
@@ -354,7 +354,7 @@ half4 main(float2 fragCoord) {
 
     // Étape 12: Visualisation aberration chromatique
     // Attendu: Image avec franges colorées
-    // return chromaticColor;
+     return chromaticColor;
 
     // Combinaison des effets
     half3 baseEffect = mix(subsurfaceEffect, chromaticColor.rgb, 0.5);
@@ -362,7 +362,7 @@ half4 main(float2 fragCoord) {
 
     // Étape 13: Effets combinés sans paillettes
     // Attendu: Effet holographique complet mais sans scintillement
-    // return half4(combinedEffect, 1.0);
+   //  return half4(combinedEffect, 1.0);
 
     // Paillettes avancées
     float sparkleEffect = calculateAdvancedSparkles(uv, uTime, uSparkleIntensity);
