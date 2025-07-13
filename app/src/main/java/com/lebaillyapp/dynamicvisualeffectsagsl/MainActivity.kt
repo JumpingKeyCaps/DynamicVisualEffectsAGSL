@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.EnhancedHolographicEffectShader
+import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.OptimizedHolographicCardEffect
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.UltraRealisticHolographicEffectShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
 import kotlin.math.cos
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             //default bitmap
-            val bitmap = ImageBitmap.imageResource(id = R.drawable.demopic_h)
+            val bitmap = ImageBitmap.imageResource(id = R.drawable.demopic_d)
 
             DynamicVisualEffectsAGSLTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -100,45 +101,48 @@ class MainActivity : ComponentActivity() {
                         )
                         */
 
-
+                        /**
                         UltraRealisticHolographicEffectShader(
                             modifier = Modifier.fillMaxSize(),
                             bitmap = bitmap,
                             shaderResId = R.raw.holographic_realistic_shader,
-
                             // Paramètres optimisés pour un rendu ultra-réaliste
                             effectIntensity = 0.8f,
                             shininess = 80.0f,
                             roughness = 0.6f, // rugositer (force de leffet metalic)
                             fresnelPower = 3.0f,
-
                             rainbowScale = 2.5f,
                             rainbowOffset = 0.2f,
                             spectrumLayers = 3.0f,
-
                             normalStrength = 2.0f, // intensité du relief bruit (degradation de la carte)
                             metallic = 2.0f, // intensité du relief metalic
                             microDetailScale = 50.0f,
-
                             subsurfaceStrength = 0.3f,
                             subsurfaceThickness = 0.5f,
-
                             patternDensity = 40.0f,
                             patternVisibility = 0.6f,
-
                             sparkleDensity = 120.0f,
                             sparklePower = 15.0f,
                             sparkleIntensity = 0.4f,
                             sparkleSpeed = 1.0f,
-
-                            chromaticAberrationStrength = 0.003f,
-
+                            chromaticAberrationStrength = 0.3f,
                             animationSpeed = 1.0f,
                             pulseIntensity = 0.1f
                         )
+                        */
 
-
-
+                        OptimizedHolographicCardEffect(
+                            modifier = Modifier.fillMaxSize(),
+                            bitmap = bitmap,
+                            shaderResId = R.raw.holographic_card_shader,
+                            hologramStrength = 1.0f,
+                            iridescentPatternScale = 50.0f,
+                            iridescentDarknessThreshold = 0.2f,
+                            chromaticAberrationStrength = 0.9f,
+                            reflectionRoughness = 0.4f,
+                            sparkleVisibility = 0.8f,
+                            animationSpeed = 1.0f
+                        )
 
 
                     }
