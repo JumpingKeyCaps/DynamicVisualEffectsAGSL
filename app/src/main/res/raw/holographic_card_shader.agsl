@@ -113,9 +113,9 @@ float3 calculateProceduralNormal(float2 uv, float time, float luminance) {
     float reliefStrength = 0.7;
     reliefStrength *= (1.0 - luminance);
 
-    float fbm_frequency_scale = 4.0;
+    float fbm_frequency_scale = 35.0;
     // Augmenter le multiplier pour des normales plus visibles
-    float normal_strength_multiplier = 75.0;
+    float normal_strength_multiplier = 25.0;
 
     float2 safeResolution = max(float2(100.0, 100.0), uResolution);
     float2 texelSize = 1.0 / safeResolution;
@@ -139,7 +139,7 @@ float3 calculateProceduralNormal(float2 uv, float time, float luminance) {
     // Calcul de la normale
     float nx_perturb = dx * reliefStrength * normal_strength_multiplier;
     float ny_perturb = dy * reliefStrength * normal_strength_multiplier;
-    float nz_base = 0.02;
+    float nz_base = 0.0005;
 
     float3 normal_vector = float3(nx_perturb, ny_perturb, nz_base);
 
@@ -365,7 +365,7 @@ half4 main(float2 fragCoord) {
 
 
     // Optionnel: Glow subtil sur les highlights ou les zones de fresnel
-    // float glowFactor = pow(fresnel, 5.0) * uHologramStrength * 0.5; // Plus prononcé aux angles rasants
+     //float glowFactor = pow(fresnel, 5.0) * uHologramStrength * 0.5; // Plus prononcé aux angles rasants
     // finalColor += half3(glowFactor, glowFactor, glowFactor);
 
 
