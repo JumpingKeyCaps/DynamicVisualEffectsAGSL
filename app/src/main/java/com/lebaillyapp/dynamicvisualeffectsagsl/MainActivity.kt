@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             //default bitmap
-            val bitmap = ImageBitmap.imageResource(id = R.drawable.demopic_d)
+            val bitmap = ImageBitmap.imageResource(id = R.drawable.democard1)
 
             DynamicVisualEffectsAGSLTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -138,8 +138,8 @@ class MainActivity : ComponentActivity() {
                             hologramStrength = 1.0f,
                             iridescentPatternScale = 50.0f,
                             iridescentDarknessThreshold = 0.2f,
-                            chromaticAberrationStrength = 0.9f,
-                            reflectionRoughness = 0.4f,
+                            chromaticAberrationStrength = 0.4f,
+                            reflectionRoughness = 0.5f,
                             sparkleVisibility = 0.8f,
                             animationSpeed = 1.0f
                         )
