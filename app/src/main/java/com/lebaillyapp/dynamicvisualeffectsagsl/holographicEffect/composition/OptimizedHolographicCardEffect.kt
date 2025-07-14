@@ -146,9 +146,11 @@ fun OptimizedHolographicCardEffect(
             shader.setFloatUniform("uReflectionRoughness", reflectionRoughness)
             shader.setFloatUniform("uSparkleVisibility", sparkleVisibility)
             shader.setFloatUniform("uAnimationSpeed", animationSpeed)
-            // shader.setIntUniform("uDebugStep", debugStep) // uDebugStep a été retiré
 
             // Log.d(TAG, "All shader uniforms set successfully") // Décommenter pour debug
+
+            Log.d("screensize", "width: ${composableSize.width}, height: ${composableSize.height}")
+
         }
     }
 
