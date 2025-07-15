@@ -72,31 +72,17 @@ Simulates realistic ripples and refractions on a bitmap using a dynamic AGSL sha
 
 ---
 
-### 2. 🔥 Fire Effect *(In Development)*
+### 2. 🌈 Holographic Effects *(In Development)*
 
-Generates realistic procedural flames that progressively "burn" and consume the bitmap.
+Simulates holographic foil and rainbow diffraction effects with dynamic light refraction.
 
 - **Technical**:
-  - Perlin/Simplex noise = organic flame shapes.
-  - Dynamic color mapping: bright yellow → deep red → ash tones.
-  - Fire propagation based on time + distance from ignition.
-  - Alpha reduction & pixel burn simulation.
+  - Angle-dependent rainbow gradients with smooth UV shifts.
+  - Layered noise + sine waves to mimic diffraction patterns.
+  - Specular highlights and subtle distortion for depth.
 - **Interaction**:
-  - Long-press or swipe-up to ignite.
-  - Intensity/speed controlled by gesture frequency or pressure.
- 
-####  Fire Shader Tasks
-
-- **Noise Integration**:
-  - Use Perlin/Simplex (inline or pre-generated).
-  - Tune scale/frequency.
-- **Color Mapping**:
-  - Intensity → RGBA function (fire palette).
-- **Propagation Logic**:
-  - `fire = noise + (uv.y - y0) * speed - time`.
-  - Reduce alpha where fire intensity is high.
-- **Animation**:
-  - Link all motion to `u_time` for continuity.
+  - Sensor-based view angle controls gradient movement.
+  - Touch creates shimmering pulses or rainbow flashes.
 
 ---
 
@@ -140,18 +126,31 @@ Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on w
 
 ---
 
+### 5. 🔥 Fire Effect *(Coming Soon)*
 
-### 5. 🌈 Holographic Effects *(Coming Soon)*
-
-Simulates holographic foil and rainbow diffraction effects with dynamic light refraction.
+Generates realistic procedural flames that progressively "burn" and consume the bitmap.
 
 - **Technical**:
-  - Angle-dependent rainbow gradients with smooth UV shifts.
-  - Layered noise + sine waves to mimic diffraction patterns.
-  - Specular highlights and subtle distortion for depth.
+  - Perlin/Simplex noise = organic flame shapes.
+  - Dynamic color mapping: bright yellow → deep red → ash tones.
+  - Fire propagation based on time + distance from ignition.
+  - Alpha reduction & pixel burn simulation.
 - **Interaction**:
-  - Sensor-based view angle controls gradient movement.
-  - Touch creates shimmering pulses or rainbow flashes.
+  - Long-press or swipe-up to ignite.
+  - Intensity/speed controlled by gesture frequency or pressure.
+ 
+####  Fire Shader Tasks
+
+- **Noise Integration**:
+  - Use Perlin/Simplex (inline or pre-generated).
+  - Tune scale/frequency.
+- **Color Mapping**:
+  - Intensity → RGBA function (fire palette).
+- **Propagation Logic**:
+  - `fire = noise + (uv.y - y0) * speed - time`.
+  - Reduce alpha where fire intensity is high.
+- **Animation**:
+  - Link all motion to `u_time` for continuity.
 
 ---
 
