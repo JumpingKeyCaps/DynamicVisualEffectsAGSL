@@ -168,39 +168,7 @@ Generates stylized lightning bolts and crackling energy sparks across the screen
 
 ---
 
-### 7. 🌌 Glowing Particles & Fireflies *(Coming Soon)*
-
-A swarm of dynamic glowing dots (fireflies) that float and react to user gestures.
-
-- **Technical**:
-  - Particle position: Managed in Kotlin (Vec2 list) + passed as uniform array.
-  - Glow effect: Soft radial alpha + color gradient.
-  - Movement: Brownian / Perlin / orbit logic for drift.
-- **Interaction**:
-  - Tap/drag = attract or repel nearby particles.
-  - Shake = scatter all fireflies briefly.
-
----
-
-
-### 8. 🧠 Pixel Sorting & Datamosh *(To Evaluate)*
-
-Creates glitch aesthetics by algorithmically "stretching" or reordering pixels in segments of the image.
-
-- **Technical**:
-  - Pixel sorting: Sort horizontal or vertical lines based on pixel luminance or hue.
-  - Block warping: Randomly shift image blocks (UV offset by region).
-  - Color bleeding: Optional chromatic offset during sorting.
-  - Artifacts: Simulate video decoding glitches using time-based block shifts.
-- **Interaction**:
-  - Triggered by tap/tilt/shake.
-  - Speed of shake affects glitch severity and block size.
-- **Notes**:
-  - Requires moderate GPU effort — not real-time sorting per frame unless small regions only.
-
----
-
-### 9. 🔍 Fisheye & Cathodic CRT Effect *(To Evaluate)*
+### 7. 🔍 Fisheye & Cathodic CRT Effect *(To Evaluate)*
 
 Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromatic aberration, and screen curvature.
 
@@ -216,7 +184,7 @@ Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromat
 
 ---
 
-### 10. ❄️ Frosted Glass / Frost Effect
+### 8. ❄️ Frosted Glass / Frost Effect
 
 Blurs and distorts the image as if viewed through frosted glass.
 
@@ -225,19 +193,6 @@ Blurs and distorts the image as if viewed through frosted glass.
   - Overlay of animated frost crystals using noise and fractal shapes.
 - **Interaction**:
   - Touch to add frost, shake to reset.
-    
----
-
-### 11. 🔆 Neon Glow & Outline
-
-Creates a colored glowing outline around shapes in the image.
-
-- **Technical**:
-  - Simplified Sobel edge detection on luminance.
-  - Blur and progressive coloring for glow effect.
-- **Interaction**:
-  - Glow intensity follows swipe velocity.
-
 
 ---
 
