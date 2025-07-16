@@ -127,14 +127,13 @@ half4 main(float2 fragCoord) {
     ));
 
     // Test 2 : Retourne uniquement le mask de luminance inversée (zone sombre)
-    /*
     float darknessMask = 1.0 - smoothstep(
         uIridescentDarknessThreshold,
         uIridescentDarknessThreshold + 0.2,
         luminance
     );
-    return half4(darknessMask.xxx, 1.0);
-    */
+   // return half4(darknessMask.xxx, 1.0);
+
 
     float darknessMask = 1.0 - smoothstep(
         uIridescentDarknessThreshold,
@@ -147,16 +146,13 @@ half4 main(float2 fragCoord) {
     float3 perturbedNormal = calculatePerturbedNormal(uv, baseNormal);
 
     // Test 3 : Retourne la normale perturbée (visualisation vectorielle rgb)
-    /*
-    return half4(perturbedNormal * 0.5 + 0.5, 1.0);
-    */
+   // return half4(perturbedNormal * 0.5 + 0.5, 1.0);
+
 
     half3 rainbowEffectPure = calculateMultiLayerRainbow(uv, viewDirection, perturbedNormal);
 
     // Test 4 : Retourne l'effet arc-en-ciel seul (pas de mask, juste pour voir l'effet)
-    /*
-    return half4(rainbowEffectPure, 1.0);
-    */
+    //return half4(rainbowEffectPure, 1.0);
 
     float fresnelFactor = pow(1.0 - max(0.0, dot(baseNormal, viewDirection)), uFresnelPower);
     float finalBrightnessMultiplier = mix(0.4, 1.0, fresnelFactor) * uEffectIntensity;
@@ -172,9 +168,7 @@ half4 main(float2 fragCoord) {
     half3 finalColor = originalColor.rgb;
 
     // Test 5 : Retourne juste le rendu aberration chromatique (pas d'arc en ciel)
-    /*
-    return half4(chroma.rgb, originalColor.a);
-    */
+   // return half4(chroma.rgb, originalColor.a);
 
     finalColor = mix(finalColor, chroma.rgb, uChromaticAberrationStrength);
     finalColor = mix(finalColor, finalColor + finalRainbowEffect, globalHologramMask);
