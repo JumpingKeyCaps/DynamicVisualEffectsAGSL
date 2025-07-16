@@ -17,7 +17,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
-import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.EnhancedHolographicEffectShader
+import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.HolographicEffectBitmapShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.OptimizedHolographicCardEffect
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.UltraRealisticHolographicEffectShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
 
                         // [5] - Holographic Effect composition screen
 
-                    /** v1
+                        /**
                         HolographicEffectBitmapShader(
                             bitmap = bitmap,
                             shaderResId = R.raw.holographic_base_shader,
@@ -79,70 +79,38 @@ class MainActivity : ComponentActivity() {
                             shimmerSpeed = 1.2f,     // Vitesse d'animation
                             tiltAngle = 0.5f         // Angle de base pour les reflets
                         )
-                        */
+                    */
 
 
-                        /** v2
 
-                        EnhancedHolographicEffectShader(
-                            modifier = Modifier.fillMaxSize(),
-                            bitmap = bitmap,
-                            shaderResId = R.raw.holographic_shader, // Chemin vers votre nouveau shader
-                            effectIntensity = 1.0f,
-                            shininess = 150.0f,
-                            rainbowScale = 1.5f,
-                            rainbowOffset = 0.0f,
-                            patternDensity = 25.0f,
-                            patternVisibility = 0.8f,
-                            sparkleDensity = 70.0f,
-                            sparklePower = 10.0f,
-                            sparkleIntensity = 0.7f,
-                            chromaticAberrationStrength = 20.0f
-                        )
-                        */
 
-                        /**
+
+                        /**v3
                         UltraRealisticHolographicEffectShader(
                             modifier = Modifier.fillMaxSize(),
                             bitmap = bitmap,
                             shaderResId = R.raw.holographic_realistic_shader,
-                            // Paramètres optimisés pour un rendu ultra-réaliste
-                            effectIntensity = 0.8f,
-                            shininess = 80.0f,
-                            roughness = 0.6f, // rugositer (force de leffet metalic)
-                            fresnelPower = 3.0f,
-                            rainbowScale = 2.5f,
+                            // Paramètres pertinents pour l'effet arc-en-ciel modulé par Fresnel
+                            effectIntensity = 6.8f,
+                            fresnelPower = 6.0f,
+                            rainbowScale = 1.2f,
                             rainbowOffset = 0.2f,
-                            spectrumLayers = 3.0f,
-                            normalStrength = 2.0f, // intensité du relief bruit (degradation de la carte)
-                            metallic = 2.0f, // intensité du relief metalic
-                            microDetailScale = 50.0f,
-                            subsurfaceStrength = 0.3f,
-                            subsurfaceThickness = 0.5f,
-                            patternDensity = 40.0f,
-                            patternVisibility = 0.6f,
-                            sparkleDensity = 120.0f,
-                            sparklePower = 15.0f,
-                            sparkleIntensity = 0.4f,
-                            sparkleSpeed = 1.0f,
-                            chromaticAberrationStrength = 0.3f,
-                            animationSpeed = 1.0f,
-                            pulseIntensity = 0.1f
+                            normalStrength = 2.0f,
+                            microDetailScale = 45.0f
                         )
-                        */
+
+
+                         */
+
 
                         OptimizedHolographicCardEffect(
                             modifier = Modifier.fillMaxSize(),
                             bitmap = bitmap,
                             shaderResId = R.raw.holographic_card_shader,
-                            hologramStrength = 1.0f,
-                            iridescentPatternScale = 50.0f,
-                            iridescentDarknessThreshold = 0.2f,
-                            chromaticAberrationStrength = 0.4f,
-                            reflectionRoughness = 0.5f,
-                            sparkleVisibility = 0.8f,
-                            animationSpeed = 1.0f
+
                         )
+
+
 
 
                     }
