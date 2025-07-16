@@ -1,31 +1,24 @@
-// Optimized Holographic Card Shader for AGSL
-// Texture d'entrée (bitmap/image)
 uniform shader inputShader;
 
-// Paramètres de base
 uniform float2 uResolution;
 uniform float uAspectRatio;
-uniform float uTime;
+uniform float uTiltRoll;
+uniform float uTiltPitch;
 
-// Capteur de tilt (ROLL uniquement)
-uniform float uTiltRoll; // Valeur entre -1.0 et 1.0 (gauche à droite)
-
-// Paramètres des effets simplifiés (correspondent à ceux de Compose)
 uniform float uHologramStrength;
-uniform float uIridescentPatternScale;
-uniform float uIridescentDarknessThreshold; // Seuil de luminance pour activer l'iridescence
+uniform float uIridescentDarknessThreshold;
 uniform float uChromaticAberrationStrength;
-uniform float uReflectionRoughness;
-uniform float uSparkleVisibility;
-uniform float uAnimationSpeed;
 
-// Constantes
+uniform float uEffectIntensity;
+uniform float uFresnelPower;
+uniform float uRainbowScale;
+uniform float uRainbowOffset;
+uniform float uNormalStrength;
+uniform float uMicroDetailScale;
+
 float PI = 3.141592653589793;
 
-/**
- * Générateur de bruit (Perlin Noise simplifié)
- * Pour des détails irréguliers dans les motifs et reliefs.
- */
+// --- Bruit
 float hash(float2 p) {
     return fract(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
 }
@@ -33,345 +26,159 @@ float hash(float2 p) {
 float noise(float2 p) {
     float2 i = floor(p);
     float2 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f); // Courbe de lissage Hermite
-
+    f = f * f * (3.0 - 2.0 * f);
     float a = hash(i);
     float b = hash(i + float2(1.0, 0.0));
     float c = hash(i + float2(0.0, 1.0));
     float d = hash(i + float2(1.0, 1.0));
-
     return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
-/**
- * Bruit fractal pour plus de détails
- */
 float fbm(float2 p) {
     float value = 0.0;
     float amplitude = 0.5;
     float frequency = 1.0;
-    const int fixedOctaves = 4;
-
+    const int fixedOctaves = 3;
     for (int i = 0; i < fixedOctaves; i++) {
         value += amplitude * noise(p * frequency);
         amplitude *= 0.5;
         frequency *= 2.0;
     }
-    // Assurez-vous que la valeur finale est bornée entre 0 et 1.
-    // L'ancien shader avait (value - 0.5) * 2.0. Utilisons un clamp pour la robustesse.
-    return clamp(value, 0.0, 1.0); // <-- CLAMP AJOUTÉ ICI
+    return (value - 0.5) * 2.0;
 }
 
-/**
- * Convertit une valeur de teinte (0-1) en couleur RGB (HSV to RGB).
- */
+// --- HSV to RGB
 half3 enhancedRainbow(float t, float saturation) {
     t = fract(t);
     float h = t * 6.0;
     float c = saturation;
     float x = c * (1.0 - abs(fract(h * 0.5) * 2.0 - 1.0));
-
     half3 color;
-    if (h < 1.0) color = half3(c, x, 0.0);       // Rouge -> Jaune
-    else if (h < 2.0) color = half3(x, c, 0.0);  // Jaune -> Vert
-    else if (h < 3.0) color = half3(0.0, c, x);  // Vert -> Cyan
-    else if (h < 4.0) color = half3(0.0, x, c);  // Cyan -> Bleu
-    else if (h < 5.0) color = half3(x, 0.0, c);  // Bleu -> Magenta
-    else color = half3(c, 0.0, x);               // Magenta -> Rouge
-
+    if (h < 1.0) color = half3(c, x, 0.0);
+    else if (h < 2.0) color = half3(x, c, 0.0);
+    else if (h < 3.0) color = half3(0.0, c, x);
+    else if (h < 4.0) color = half3(0.0, x, c);
+    else if (h < 5.0) color = half3(x, 0.0, c);
+    else color = half3(c, 0.0, x);
     return color;
 }
 
-/**
- * Génère un motif géométrique (losanges/carrés) avec une distorsion subtile.
- * Le motif bouge et se déforme légèrement avec le tilt.
- */
-float generateIridescentPattern(float2 uv, float time, float rollFactor) {
-    // Décalage des coordonnées basé sur le roll pour un effet de mouvement 3D
-    float2 patternCoord = uv * uIridescentPatternScale;
-    patternCoord.x += rollFactor * 1.5; // Plus grand décalage en X pour le roll
-    patternCoord.y += time * uAnimationSpeed * 0.1; // Animation subtile
+// --- Normale perturbée
+float3 calculatePerturbedNormal(float2 uv, float3 baseNormal) {
+    float2 texelSize = 1.0 / uResolution;
+    float heightL = fbm((uv - float2(texelSize.x, 0.0)) * uMicroDetailScale);
+    float heightR = fbm((uv + float2(texelSize.x, 0.0)) * uMicroDetailScale);
+    float heightD = fbm((uv - float2(0.0, texelSize.y)) * uMicroDetailScale);
+    float heightU = fbm((uv + float2(0.0, texelSize.y)) * uMicroDetailScale);
 
-    // Ajout d'une légère distorsion par bruit pour un aspect "organique" ou irrégulier
-    patternCoord += fbm(uv * 20.0 + time * 0.05) * 0.2;
+    float3 normal = baseNormal;
+    normal.x += (heightL - heightR) * uNormalStrength * uNormalStrength;
+    normal.y += (heightD - heightU) * uNormalStrength * uNormalStrength;
 
-    // Motif de losanges / checker (peut être ajusté pour plus de variété)
-    float cellX = fract(patternCoord.x);
-    float cellY = fract(patternCoord.y);
-
-    float diamond = abs(cellX - 0.5) + abs(cellY - 0.5);
-    diamond = 1.0 - smoothstep(0.2, 0.4, diamond); // Crée des formes de losanges
-
-    return diamond;
+    float xy_strength_sq = normal.x * normal.x + normal.y * normal.y;
+    normal.z = sqrt(max(0.0, 1.0 - xy_strength_sq));
+    return normalize(normal);
 }
 
-/**
- * Calcule une normale procédurale pour le faux relief/gravure.
- * Peut être modulée par la luminance pour des effets sur les zones sombres.
- */
-float3 calculateProceduralNormal(float2 uv, float time, float luminance) {
-    float reliefStrength = 0.7;
-    reliefStrength *= (1.0 - luminance);
+// --- Motif iridescent auto-réactif
+half3 calculateMultiLayerRainbow(float2 uv, float3 viewDir, float3 perturbedNormal) {
+    float2 centeredUv = uv - 0.5;
+    centeredUv.x *= uAspectRatio;
 
-    float fbm_frequency_scale = 35.0;
-    // Augmenter le multiplier pour des normales plus visibles
-    float normal_strength_multiplier = 25.0;
+    float angleFactor = dot(viewDir, perturbedNormal); // [-1,1]
+    float angleFactor01 = clamp((angleFactor + 1.0) * 0.5, 0.0, 1.0); // [0,1]
 
-    float2 safeResolution = max(float2(100.0, 100.0), uResolution);
-    float2 texelSize = 1.0 / safeResolution;
-    texelSize = clamp(texelSize, 0.0001, 0.01);
+    // ↘ Angle direct = scale élevé (fins)
+    // ↗ Angle rasant = scale réduit (grosses taches)
+    float scaleFactor = mix(0.4, 1.4, 1.0 - angleFactor01);
+    float dynamicScale = uRainbowScale * scaleFactor;
 
-    float time_offset = 0;
+    float noiseAmount = (abs(perturbedNormal.x) + abs(perturbedNormal.y)) * 2.0;
+    float actualNoiseStrength = smoothstep(0.0, 1.0, max(0.0, (noiseAmount - 0.05) / 0.95));
 
-    // Calcul des gradients
-    float heightL = fbm((uv - float2(texelSize.x, 0.0)) * fbm_frequency_scale + time_offset);
-    float heightR = fbm((uv + float2(texelSize.x, 0.0)) * fbm_frequency_scale + time_offset);
-    float heightD = fbm((uv - float2(0.0, texelSize.y)) * fbm_frequency_scale + time_offset);
-    float heightU = fbm((uv + float2(0.0, texelSize.y)) * fbm_frequency_scale + time_offset);
+    float shift1 = dot(viewDir, perturbedNormal) * dynamicScale + fbm(uv * 8.0) * 0.3 * actualNoiseStrength + uRainbowOffset;
+    float shift2 = dot(viewDir, float3(perturbedNormal.y, -perturbedNormal.x, 0.0)) * dynamicScale * 0.8 + fbm(uv * 12.0) * 0.2 * actualNoiseStrength;
+    float shift3 = length(centeredUv + viewDir.xy) * dynamicScale * 1.5 + fbm(uv * 6.0) * 0.4 * actualNoiseStrength;
 
-    float dx = heightR - heightL;
-    float dy = heightU - heightD;
+    half3 rainbow1 = enhancedRainbow(shift1, 0.8) * 0.4;
+    half3 rainbow2 = enhancedRainbow(shift2, 0.9) * 0.3;
+    half3 rainbow3 = enhancedRainbow(shift3, 0.7) * 0.3;
 
-    // Garder les bornes mais plus larges pour des normales plus expressives
-    dx = clamp(dx, -0.25, 0.25);
-    dy = clamp(dy, -0.25, 0.25);
-
-    // Calcul de la normale
-    float nx_perturb = dx * reliefStrength * normal_strength_multiplier;
-    float ny_perturb = dy * reliefStrength * normal_strength_multiplier;
-    float nz_base = 0.0005;
-
-    float3 normal_vector = float3(nx_perturb, ny_perturb, nz_base);
-
-    // Vérifier que le vecteur n'est pas nul avant normalisation
-    float vector_length = length(normal_vector);
-    if (vector_length < 0.0001) {
-        return float3(0.0, 0.0, 1.0);
-    }
-
-    float3 normalized_normal = normalize(normal_vector);
-
-    // Vérification finale pour éviter les valeurs aberrantes
-    if (normalized_normal.x != normalized_normal.x || normalized_normal.y != normalized_normal.y || normalized_normal.z != normalized_normal.z) {
-        return float3(0.0, 0.0, 1.0);
-    }
-
-    if (abs(normalized_normal.x) > 10.0 || abs(normalized_normal.y) > 10.0 || abs(normalized_normal.z) > 10.0) {
-        return float3(0.0, 0.0, 1.0);
-    }
-
-    return normalized_normal;
+    return rainbow1 + rainbow2 + rainbow3;
 }
 
-/**
- * Calcul de la réflexion spéculaire dynamique ("reflet Chrome").
- * La position du reflet dépend du tilt du téléphone.
- */
-half3 calculateDynamicReflection(float2 uv, float3 normal, float tiltRoll, float roughness) {
-    // Simule une direction de lumière virtuelle basée sur le tiltRoll
-    // La lumière se déplace latéralement avec le téléphone
-    float3 lightDirection = normalize(float3(tiltRoll * 0.8, 0.3, 1.0));
-    float3 viewDirection = normalize(float3(0.0, 0.0, 1.0)); // Vue toujours "face à la carte"
-
-    float3 halfVector = normalize(lightDirection + viewDirection);
-
-    // D-distribution (GGX simplifiée pour la performance)
-    float NdotH = max(0.0, dot(normal, halfVector));
-    float alpha = roughness * roughness;
-    float D = alpha / (PI * pow(NdotH * NdotH * (alpha - 1.0) + 1.0, 2.0));
-
-    // Fresnel Schlick (pour la force de la réflexion)
-    float F0 = 0.8; // Une valeur F0 élevée pour un look métallique/chrome
-    float fresnel = F0 + (1.0 - F0) * pow(1.0 - max(0.0, dot(viewDirection, halfVector)), 5.0);
-
-    // Fonction de géométrie (simplifiée)
-    float G = 1.0; // Pour la simplicité et la performance, peut être omis ou très basique
-
-    // ---  `specular` doit être un `half3` ---
-    half3 specular = half3(D * G * fresnel); // Multiplie par un half3 pour s'assurer que le type est correct.
-
-    return specular;
-}
-
-/**
- * Génère des paillettes aléatoires qui bougent.
- */
-float generateSparkles(float2 uv, float time) {
-    float sparkle = 0.0;
-    // Trois couches de bruit pour des paillettes de tailles différentes
-    sparkle += pow(noise(uv * 100.0 + time * 5.0), 20.0); // Grosses et brillantes
-    sparkle += pow(noise(uv * 200.0 + time * 7.0), 15.0); // Moyennes
-    sparkle += pow(noise(uv * 300.0 + time * 9.0), 10.0); // Petites
-
-    return sparkle;
-}
-
-/**
- * Fonction principale du shader
- */
+// --- MAIN
 half4 main(float2 fragCoord) {
-    // Normalisation des coordonnées
     float2 uv = fragCoord / uResolution;
     float2 centeredUv = uv - 0.5;
-    centeredUv.x *= uAspectRatio; // Correction d'aspect ratio
+    centeredUv.x *= uAspectRatio;
 
     half4 originalColor = inputShader.eval(fragCoord);
-    float luminance = dot(originalColor.rgb, half3(0.299, 0.587, 0.114)); // Luminosité du pixel
 
-    // Normalisation du uTiltRoll pour des facteurs de 0 à 1 (pour certains calculs de mélange)
-    float normalizedRoll = (uTiltRoll + 1.0) * 0.5; // Mappe de [-1, 1] à [0, 1]
-    float absRoll = abs(uTiltRoll); // Intensité absolue du roll
-
-    // --- Calcule des masques et facteurs globaux ---
-    // Masque pour les zones sombres (là où l'iridescence sera la plus forte)
-    // Plus le pixel est sombre, plus le masque est élevé
-    float darknessMask = 1.0 - smoothstep(uIridescentDarknessThreshold, uIridescentDarknessThreshold + 0.2, luminance);
-    // Masque d'intensité globale de l'hologramme
-    float globalHologramMask = darknessMask * uHologramStrength;
-
-    // Intensité du Fresnel basée sur le tilt (plus on incline, plus c'est fort)
-    // viewDirection simule la direction de l'œil par rapport à la carte
-    // The Z component should simulate "looking away" from the direct front
-    float angleFactor = abs(uTiltRoll);
-
-    float3 viewDirection = normalize(float3(uTiltRoll * 1.5, 0.5, 1.0 - angleFactor * 0.4)); // plus petit = plus sensible
-    float3 baseNormal = float3(0.0, 0.0, 1.0); // Normale de la surface plane par défaut
-
-    // La puissance du Fresnel est plus sensible à l'angle, donc pas besoin d'un uniform dédié pour l'instant.
-    float fresnel = pow(1.0 - max(0.0, dot(baseNormal, viewDirection)), 0.8); //  plus petit  = plus bright
-    fresnel *= (0.5 + absRoll * 0.5); // Fresnel plus intense si on incline fortement
-
-    // Perturbation de la normale pour le micro-relief / gravure
-    float3 perturbedNormal = calculateProceduralNormal(uv, uTime, luminance);
-
-
-
-    // --- ÉTAPES DE DEBUG ---
-    // DÉCOMMENTE UNE SEULE LIGNE 'return' À LA FOIS POUR DÉBOGUER !
-
-    //[OK!] Étape 1: Image originale
-    // Attendu: Ton image de base
+    // Test 1 : Retourne juste la couleur d'origine (image brute)
     // return originalColor;
 
-    //[OK!] Étape 2: Visualisation de la Luminosité
-    // Attendu: L'image en niveaux de gris
-    // return half4(luminance, luminance, luminance, 1.0);
+    float luminance = dot(originalColor.rgb, half3(0.299, 0.587, 0.114));
 
-    //[OK!] Étape 3: Visualisation du Masque des zones sombres (Darkness Mask)
-    // Attendu: Zones sombres de l'image en blanc/gris, le reste en noir.
-   //  return half4(darknessMask, darknessMask, darknessMask, 1.0);
+    float3 viewDirection = normalize(float3(
+        uTiltRoll * 3.0,
+        uTiltPitch * 2.0 - 0.7,
+        1.0
+    ));
 
-    //[OK!] Étape 4: Visualisation de la Valeur du Tilt ROLL
-    // Attendu: Une couleur (ex: rouge) qui varie en intensité avec le roll du téléphone
-    // return half4(normalizedRoll, 0.0, 0.0, 1.0);
+    // Test 2 : Retourne uniquement le mask de luminance inversée (zone sombre)
+    /*
+    float darknessMask = 1.0 - smoothstep(
+        uIridescentDarknessThreshold,
+        uIridescentDarknessThreshold + 0.2,
+        luminance
+    );
+    return half4(darknessMask.xxx, 1.0);
+    */
 
-    // Étape 5: Visualisation de l'effet Fresnel
-    // Attendu: Les bords de la carte brillent plus intensément, l'intensité varie avec le tilt.
-    // return half4(fresnel, fresnel, fresnel, 1.0);
+    float darknessMask = 1.0 - smoothstep(
+        uIridescentDarknessThreshold,
+        uIridescentDarknessThreshold + 0.2,
+        luminance
+    );
+    float globalHologramMask = darknessMask * uHologramStrength;
 
-    // Étape 6: Visualisation de la Normale perturbée (Faux Relief / Bump Mapping)
-    // Attendu: Une surface avec des variations de couleur (teintes RGB) simulant un micro-relief.
-    //return half4(perturbedNormal * 0.5 + 0.5, 1.0);
+    float3 baseNormal = float3(0.0, 0.0, 1.0);
+    float3 perturbedNormal = calculatePerturbedNormal(uv, baseNormal);
 
+    // Test 3 : Retourne la normale perturbée (visualisation vectorielle rgb)
+    /*
+    return half4(perturbedNormal * 0.5 + 0.5, 1.0);
+    */
 
+    half3 rainbowEffectPure = calculateMultiLayerRainbow(uv, viewDirection, perturbedNormal);
 
+    // Test 4 : Retourne l'effet arc-en-ciel seul (pas de mask, juste pour voir l'effet)
+    /*
+    return half4(rainbowEffectPure, 1.0);
+    */
 
+    float fresnelFactor = pow(1.0 - max(0.0, dot(baseNormal, viewDirection)), uFresnelPower);
+    float finalBrightnessMultiplier = mix(0.4, 1.0, fresnelFactor) * uEffectIntensity;
+    finalBrightnessMultiplier = clamp(finalBrightnessMultiplier, 0.0, 1.0);
 
-    // --- Calcul des effets individuels ---
+    half3 finalRainbowEffect = rainbowEffectPure * finalBrightnessMultiplier;
 
-    // 1. Rainbow Foil Shimmer (Iridescence)
-    // Décalage de la couleur arc-en-ciel par le roll et le temps
-    float rainbowShift = uv.x * 2.0 + uTime * uAnimationSpeed * 0.2 + normalizedRoll * 1.5;
-    half3 rainbowFoil = enhancedRainbow(rainbowShift, 0.9);
-    // Ondes subtiles sur le rainbow
-    rainbowFoil *= (0.8 + sin(uv.y * 30.0 + uTime * uAnimationSpeed * 0.5) * 0.2);
+    float chromaFactor = uChromaticAberrationStrength * abs(uTiltRoll);
+    half4 r = inputShader.eval(fragCoord + float2(chromaFactor * uResolution.x * 0.01, 0.0));
+    half4 b = inputShader.eval(fragCoord - float2(chromaFactor * uResolution.x * 0.01, 0.0));
+    half4 chroma = half4(r.r, originalColor.g, b.b, originalColor.a);
 
-    // Étape 7: Visualisation du Rainbow Foil Shimmer seul
-    // Attendu: Des bandes de couleurs arc-en-ciel qui se déplacent et ondulent.
-    // return half4(rainbowFoil, 1.0);
-
-
-    // 2. Pattern de diffraction (losanges / grille)
-    float pattern = generateIridescentPattern(uv, uTime, uTiltRoll);
-    // Teinte le motif avec le rainbow et l'intensité du fresnel
-    half3 patternedFoil = rainbowFoil * pattern * fresnel;
-
-    // Étape 8: Visualisation du Pattern de Diffraction (motif seul, noir et blanc)
-    // Attendu: Une grille ou des losanges animés.
-    // return half4(pattern, pattern, pattern, 1.0);
-
-    // Étape 9: Visualisation du Pattern de Diffraction teinté
-    // Attendu: Le motif précédent, mais coloré par l'arc-en-ciel et visible surtout sur les bords.
-    // return half4(patternedFoil, 1.0);
-
-
-    // 3. Reflet Dynamique (aspect "Chrome" ou "Spéculaire")
-    half3 chromeReflection = calculateDynamicReflection(uv, perturbedNormal, uTiltRoll, uReflectionRoughness);
-    chromeReflection *= (0.5 + absRoll * 0.5); // Plus intense avec le roll
-
-    // Étape 10: Visualisation du Reflet Dynamique (Chrome) seul
-    // Attendu: Un point lumineux ou une bande qui se déplace sur la surface avec le tilt.
-    // return half4(chromeReflection, 1.0);
-
-
-    // 4. Aberration Chromatique Bordure
-    float chromaticAberrationFactor = uChromaticAberrationStrength * absRoll * fresnel; // Plus fort sur les bords et en inclinant
-    half4 rChannel = inputShader.eval(fragCoord + float2(chromaticAberrationFactor * uResolution.x, 0.0));
-    half4 gChannel = inputShader.eval(fragCoord);
-    half4 bChannel = inputShader.eval(fragCoord - float2(chromaticAberrationFactor * uResolution.x, 0.0));
-    half4 chromaticColor = half4(rChannel.r, gChannel.g, bChannel.b, originalColor.a);
-
-    // Étape 11: Visualisation de l'Aberration Chromatique
-    // Attendu: L'image originale avec des franges de couleurs RVB visibles, surtout sur les contours.
-    // return chromaticColor;
-
-
-    // 5. Sparkles / Paillettes
-    float sparkles = generateSparkles(uv, uTime);
-    sparkles *= fresnel * uSparkleVisibility; // Plus visibles avec le fresnel et la visibilité
-
-    // Étape 12: Visualisation des Sparkles (Paillettes) seuls
-    // Attendu: Des petits points lumineux aléatoires qui scintillent et bougent.
-    // return half4(sparkles, sparkles, sparkles, 1.0);
-
-
-    // --- Combinaison des effets holographiques ---
-
-    half3 combinedHoloEffects = half3(0.0);
-    combinedHoloEffects += rainbowFoil * 0.7; // Base de l'iridescence
-    combinedHoloEffects += patternedFoil * 1.0; // Ajoute le motif par-dessus
-    combinedHoloEffects += chromeReflection * 0.6; // Ajoute le reflet chrome
-    combinedHoloEffects += sparkles * 0.5; // Ajoute les paillettes
-
-    // Applique le masque des zones sombres et la force globale à tous les effets holographiques
-    combinedHoloEffects *= globalHologramMask;
-
-    // Étape 13: Visualisation de TOUS les Effets Holographiques Combinés (avant mélange final)
-    // Attendu: L'ensemble des effets holographiques (iridescence, motifs, reflets, paillettes) appliqués
-    // uniquement sur les zones sombres et modulés par la force globale.
-    // return half4(combinedHoloEffects, 1.0);
-
-    // --- Mélange final des effets avec l'image originale ---
     half3 finalColor = originalColor.rgb;
 
-    // Mélanger l'aberration chromatique sur toute l'image (subtil)
-    // L'aberration est appliquée sur l'image de base pour un effet de lentille global.
-    finalColor = mix(finalColor, chromaticColor.rgb, uChromaticAberrationStrength * 10.0); // Coefficient ajusté pour l'impact
+    // Test 5 : Retourne juste le rendu aberration chromatique (pas d'arc en ciel)
+    /*
+    return half4(chroma.rgb, originalColor.a);
+    */
 
-    // Appliquer les effets holographiques sur les zones masquées
-    // Les effets holographiques sont fusionnés avec l'image de base, l'intensité du mélange
-    // étant contrôlée par le masque de noirceur et la force globale.
-    finalColor = mix(finalColor, combinedHoloEffects, globalHologramMask);
-
-
-    // Optionnel: Glow subtil sur les highlights ou les zones de fresnel
-     //float glowFactor = pow(fresnel, 5.0) * uHologramStrength * 0.5; // Plus prononcé aux angles rasants
-    // finalColor += half3(glowFactor, glowFactor, glowFactor);
-
-
-    // Limitation des valeurs et résultat final
+    finalColor = mix(finalColor, chroma.rgb, uChromaticAberrationStrength);
+    finalColor = mix(finalColor, finalColor + finalRainbowEffect, globalHologramMask);
     finalColor = clamp(finalColor, 0.0, 1.0);
 
-    // RÉSULTAT FINAL DU SHADER
     return half4(finalColor, originalColor.a);
 }
