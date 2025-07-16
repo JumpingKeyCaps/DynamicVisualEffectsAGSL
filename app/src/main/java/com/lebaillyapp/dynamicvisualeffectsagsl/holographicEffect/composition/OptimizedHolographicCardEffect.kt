@@ -13,7 +13,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +30,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.toSize
-import kotlinx.coroutines.delay
 import kotlin.math.PI
 
 @Composable
@@ -40,132 +38,125 @@ fun OptimizedHolographicCardEffect(
     bitmap: ImageBitmap,
     @RawRes shaderResId: Int,
 
-    // Paramètres principaux simplifiés pour le contrôle global de l'effet
-    hologramStrength: Float = 1.0f, // Intensité globale de l'effet holographique
-    iridescentPatternScale: Float = 50.0f, // Taille des motifs iridescents (plus grand = plus de détails)
-    iridescentDarknessThreshold: Float = 0.2f, // Seuil de noirceur pour l'iridescence (0.0=noir pur, 1.0=blanc)
-    chromaticAberrationStrength: Float = 0.005f, // Force de l'aberration chromatique (petite valeur, e.g., 0.001-0.01)
-    reflectionRoughness: Float = 0.3f, // Rugosité du reflet (0.0=miroir, 1.0=mat)
-    sparkleVisibility: Float = 0.8f, // Visibilité des paillettes
-    animationSpeed: Float = 1.0f // Vitesse générale des animations (motifs, shimmer)
+    // === PARAMÈTRES D'ENTRÉE CONTROLLABLES EXTERNEMENT ===
+    hologramStrength: Float = 1.5f,                 // Opacité de l’effet holographique (sur les zones sombres)
+    iridescentDarknessThreshold: Float = 0.005f,    // Seuil de luminosité en-dessous duquel l'effet s'active
+    chromaticAberrationStrength: Float = 1.5f,      // Force du décalage RVB sur le roll
+
+    effectIntensity: Float = 2.0f,                  // Multiplicateur final de l’effet arc-en-ciel
+    fresnelPower: Float = 6.0f,                     // Puissance du falloff directionnel (style "reflet")
+    rainbowScale: Float = 10.2f,                     // Taille des "taches d’huile" colorées
+    rainbowOffset: Float = 1.0f,                    // Décalage global du motif rainbow
+    normalStrength: Float = 2.5f,                   // Force du relief (impacte la déformation du pattern)
+    microDetailScale: Float = 5.0f                 // Taille des détails dans le relief (finesse)
 ) {
     val context = LocalContext.current
-    val TAG = "OptimizedHolographicCardEffect"
 
+    // === CAPTEURS ===
     var tiltRoll by remember { mutableFloatStateOf(0f) }
-    var elapsedTime by remember { mutableFloatStateOf(0f) }
-
-    val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
-    val alpha = 0.15f // Lissage des capteurs
-
-    LaunchedEffect(animationSpeed) {
-        val startTime = System.currentTimeMillis()
-        while (true) {
-            elapsedTime = (System.currentTimeMillis() - startTime) / 1000f * animationSpeed
-            delay(16) // Environ 60 FPS
-        }
+    var tiltPitch by remember { mutableFloatStateOf(0f) }
+    val sensorManager = remember {
+        context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     }
+    val alpha = 0.15f // Lissage du signal des capteurs
 
+    // === LISTENER ORIENTATION ===
     val sensorEventListener = rememberUpdatedState(object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent?) {
-            event?.let {
-                if (it.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-                    val rotationMatrix = FloatArray(9)
-                    val orientationValues = FloatArray(3)
+            if (event?.sensor?.type == Sensor.TYPE_ROTATION_VECTOR) {
+                val rotationMatrix = FloatArray(9)
+                val orientationValues = FloatArray(3)
+                SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                SensorManager.getOrientation(rotationMatrix, orientationValues)
 
-                    SensorManager.getRotationMatrixFromVector(rotationMatrix, it.values)
-                    SensorManager.getOrientation(rotationMatrix, orientationValues)
+                val newRoll = (orientationValues[2] / PI.toFloat()).coerceIn(-1f, 1f)
+                val newPitch = (orientationValues[1] / PI.toFloat()).coerceIn(-1f, 1f)
 
-                    // On se concentre uniquement sur le ROLL (orientationValues[2])
-                    val newRoll = (orientationValues[2] / PI.toFloat()).coerceIn(-1.0f, 1.0f)
-                    tiltRoll = alpha * newRoll + (1 - alpha) * tiltRoll
-
-                    // Log.d(TAG, "Sensor update: Roll=${tiltRoll}") // Décommenter pour debug
-                }
+                tiltRoll = alpha * newRoll + (1 - alpha) * tiltRoll
+                tiltPitch = alpha * newPitch + (1 - alpha) * tiltPitch
             }
         }
 
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
     })
 
+    // === ENREGISTREMENT DU CAPTEUR ===
     DisposableEffect(sensorManager) {
-        val rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-
-        if (rotationVectorSensor == null) {
-            Log.e(TAG, "TYPE_ROTATION_VECTOR sensor NOT available on this device!")
-        } else {
+        val rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        rotationSensor?.let {
             sensorManager.registerListener(
                 sensorEventListener.value,
-                rotationVectorSensor,
+                it,
                 SensorManager.SENSOR_DELAY_GAME
             )
         }
-
         onDispose {
             sensorManager.unregisterListener(sensorEventListener.value)
-            // Log.d(TAG, "Sensor listener unregistered.") // Décommenter pour debug
         }
     }
 
+    // === LECTURE DU SHADER CODE ===
     val shaderCode = remember {
-        context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+        context.resources.openRawResource(shaderResId)
+            .bufferedReader().use { it.readText() }
     }
     val shader = remember { RuntimeShader(shaderCode) }
 
+    // === MESURE DU COMPOSANT POUR SET uResolution ===
     var composableSize by remember { mutableStateOf(Size.Zero) }
 
-    val renderEffect = if (composableSize.width > 0f && composableSize.height > 0f) {
-        remember(
-            shader,
-            tiltRoll, elapsedTime,
-            hologramStrength, iridescentPatternScale, iridescentDarknessThreshold,
-            chromaticAberrationStrength, reflectionRoughness, sparkleVisibility,
-            animationSpeed
-        ) { // uDebugStep a été retiré des dépendances
-            RenderEffect.createRuntimeShaderEffect(shader, "inputShader").asComposeRenderEffect()
-        }
-    } else {
-        null
+    // === CRÉATION DU RENDER EFFECT ===
+    val renderEffect = remember(
+        shader, tiltRoll, tiltPitch,
+        hologramStrength, iridescentDarknessThreshold, chromaticAberrationStrength,
+        effectIntensity, fresnelPower, rainbowScale, rainbowOffset,
+        normalStrength, microDetailScale
+    ) {
+        if (composableSize.width > 0f && composableSize.height > 0f) {
+            RenderEffect.createRuntimeShaderEffect(shader, "inputShader")
+                .asComposeRenderEffect()
+        } else null
     }
 
+    // === SET DES UNIFORMS ===
     SideEffect {
         if (composableSize.width > 0f && composableSize.height > 0f) {
-            // Uniforms de base
+            // Base
             shader.setFloatUniform("uResolution", composableSize.width, composableSize.height)
             shader.setFloatUniform("uAspectRatio", composableSize.width / composableSize.height)
-            shader.setFloatUniform("uTime", elapsedTime)
 
-            // Capteur (ROLL uniquement)
+            // Capteurs
             shader.setFloatUniform("uTiltRoll", tiltRoll)
+            shader.setFloatUniform("uTiltPitch", tiltPitch)
 
-            // Paramètres des effets
+            // Paramètres de masquage / effets visuels
             shader.setFloatUniform("uHologramStrength", hologramStrength)
-            shader.setFloatUniform("uIridescentPatternScale", iridescentPatternScale)
             shader.setFloatUniform("uIridescentDarknessThreshold", iridescentDarknessThreshold)
             shader.setFloatUniform("uChromaticAberrationStrength", chromaticAberrationStrength)
-            shader.setFloatUniform("uReflectionRoughness", reflectionRoughness)
-            shader.setFloatUniform("uSparkleVisibility", sparkleVisibility)
-            shader.setFloatUniform("uAnimationSpeed", animationSpeed)
 
-            // Log.d(TAG, "All shader uniforms set successfully") // Décommenter pour debug
+            // Paramètres du pattern rainbow + relief
+            shader.setFloatUniform("uEffectIntensity", effectIntensity)
+            shader.setFloatUniform("uFresnelPower", fresnelPower)
+            shader.setFloatUniform("uRainbowScale", rainbowScale)
+            shader.setFloatUniform("uRainbowOffset", rainbowOffset)
+            shader.setFloatUniform("uNormalStrength", normalStrength)
+            shader.setFloatUniform("uMicroDetailScale", microDetailScale)
 
-            Log.d("screensize", "width: ${composableSize.width}, height: ${composableSize.height}")
 
         }
     }
 
+    // === COMPOSITION VISUELLE ===
     Image(
         painter = BitmapPainter(bitmap),
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = modifier
             .fillMaxSize()
-            .onSizeChanged { size ->
-                composableSize = size.toSize()
-                // Log.d(TAG, "onSizeChanged triggered! New size: $composableSize") // Décommenter pour debug
-            }
+            .onSizeChanged { composableSize = it.toSize() }
             .then(
-                if (renderEffect != null) Modifier.graphicsLayer(renderEffect = renderEffect)
+                if (renderEffect != null)
+                    Modifier.graphicsLayer(renderEffect = renderEffect)
                 else Modifier
             )
     )
