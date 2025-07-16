@@ -40,14 +40,14 @@ fun OptimizedHolographicCardEffect(
 
     // === PARAMÈTRES D'ENTRÉE CONTROLLABLES EXTERNEMENT ===
     hologramStrength: Float = 1.5f,                 // Opacité de l’effet holographique (sur les zones sombres)
-    iridescentDarknessThreshold: Float = 0.005f,    // Seuil de luminosité en-dessous duquel l'effet s'active
+    iridescentDarknessThreshold: Float = 0.001f,    // Seuil de luminosité en-dessous duquel l'effet s'active
     chromaticAberrationStrength: Float = 1.5f,      // Force du décalage RVB sur le roll
 
     effectIntensity: Float = 2.0f,                  // Multiplicateur final de l’effet arc-en-ciel
     fresnelPower: Float = 6.0f,                     // Puissance du falloff directionnel (style "reflet")
     rainbowScale: Float = 10.2f,                     // Taille des "taches d’huile" colorées
     rainbowOffset: Float = 1.0f,                    // Décalage global du motif rainbow
-    normalStrength: Float = 2.5f,                   // Force du relief (impacte la déformation du pattern)
+    normalStrength: Float = 8.5f,                   // Force du relief (impacte la déformation du pattern)
     microDetailScale: Float = 5.0f                 // Taille des détails dans le relief (finesse)
 ) {
     val context = LocalContext.current

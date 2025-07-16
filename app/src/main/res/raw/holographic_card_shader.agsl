@@ -126,20 +126,16 @@ half4 main(float2 fragCoord) {
         1.0
     ));
 
+    float darknessMask = 1.0 - smoothstep(
+        uIridescentDarknessThreshold,
+        uIridescentDarknessThreshold + 0.2,
+        luminance
+    );
     // Test 2 : Retourne uniquement le mask de luminance inversée (zone sombre)
-    float darknessMask = 1.0 - smoothstep(
-        uIridescentDarknessThreshold,
-        uIridescentDarknessThreshold + 0.2,
-        luminance
-    );
-   // return half4(darknessMask.xxx, 1.0);
+    //return half4(darknessMask.xxx, 1.0);
 
 
-    float darknessMask = 1.0 - smoothstep(
-        uIridescentDarknessThreshold,
-        uIridescentDarknessThreshold + 0.2,
-        luminance
-    );
+
     float globalHologramMask = darknessMask * uHologramStrength;
 
     float3 baseNormal = float3(0.0, 0.0, 1.0);
