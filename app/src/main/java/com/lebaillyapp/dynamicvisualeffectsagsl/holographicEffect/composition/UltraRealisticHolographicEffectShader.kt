@@ -40,42 +40,17 @@ fun UltraRealisticHolographicEffectShader(
     bitmap: ImageBitmap,
     @RawRes shaderResId: Int,
 
-    // Effets principaux
+    // Effets principaux (simplifiés)
     effectIntensity: Float = 0.8f,
-    shininess: Float = 80.0f,
-    roughness: Float = 0.1f,
     fresnelPower: Float = 5.0f,
 
-    // Rainbow et spectre
+    // Rainbow et spectre (simplifiés)
     rainbowScale: Float = 2.5f,
     rainbowOffset: Float = 0.2f,
-    spectrumLayers: Float = 3.0f,
 
-    // Normales et micro-relief
+    // Normales et micro-relief (simplifiés)
     normalStrength: Float = 0.3f,
     microDetailScale: Float = 50.0f,
-
-    // Subsurface scattering
-    subsurfaceStrength: Float = 0.3f,
-    subsurfaceThickness: Float = 0.5f,
-
-    // Motifs et détails
-    patternDensity: Float = 40.0f,
-    patternVisibility: Float = 0.6f,
-    metallic: Float = 2.0f,
-
-    // Paillettes
-    sparkleDensity: Float = 120.0f,
-    sparklePower: Float = 15.0f,
-    sparkleIntensity: Float = 0.4f,
-    sparkleSpeed: Float = 1.0f,
-
-    // Aberration chromatique
-    chromaticAberrationStrength: Float = 0.003f,
-
-    // Animation
-    animationSpeed: Float = 1.0f,
-    pulseIntensity: Float = 0.1f
 ) {
     val context = LocalContext.current
     val TAG = "UltraRealisticHolographicShader"
@@ -91,10 +66,10 @@ fun UltraRealisticHolographicEffectShader(
     val alpha = 0.1f // Lissage des capteurs
 
     // Animation temporelle
-    LaunchedEffect(animationSpeed) {
+    LaunchedEffect(Unit) { // animationSpeed n'est plus un paramètre, donc LaunchedEffect ne dépend plus de lui
         val startTime = System.currentTimeMillis()
         while (true) {
-            elapsedTime = (System.currentTimeMillis() - startTime) / 1000f * animationSpeed
+            elapsedTime = (System.currentTimeMillis() - startTime) / 1000f // Pas de multiplication par animationSpeed
             delay(16) // ~60 FPS
         }
     }
@@ -109,11 +84,19 @@ fun UltraRealisticHolographicEffectShader(
                     SensorManager.getRotationMatrixFromVector(rotationMatrix, it.values)
                     SensorManager.getOrientation(rotationMatrix, orientationValues)
 
-                    val newPitch = (orientationValues[1] / (PI.toFloat() / 2f)).coerceIn(-1.0f, 1.0f)
-                    val newRoll = (orientationValues[2] / PI.toFloat()).coerceIn(-1.0f, 1.0f)
+                    // Ces valeurs sont déjà normalisées de -PI/2 à PI/2 et -PI à PI
+                    // Le shader s'attend à des valeurs de l'ordre de 1.0, donc on les adapte.
+                    // uTiltPitch * 2.0 et uTiltRoll * 3.0 dans le shader sont la raison de cette adaptation.
+                    val newPitch = (orientationValues[1] / (PI.toFloat() / 2f)) // Normalise pitch à [-1, 1]
+                    val newRoll = (orientationValues[2] / PI.toFloat()) // Normalise roll à [-1, 1]
 
                     tiltPitch = alpha * newPitch + (1 - alpha) * tiltPitch
                     tiltRoll = alpha * newRoll + (1 - alpha) * tiltRoll
+
+                    // Clamp les valeurs lissées pour s'assurer qu'elles restent dans les bornes attendues par le shader si le lissage les sortait.
+                    // Bien que le shader les coerce, il est bon de les garder propres ici aussi.
+                    tiltPitch = tiltPitch.coerceIn(-1.0f, 1.0f)
+                    tiltRoll = tiltRoll.coerceIn(-1.0f, 1.0f)
 
                     Log.d(TAG, "Sensor update: Pitch=${tiltPitch}, Roll=${tiltRoll}")
                 }
@@ -150,18 +133,14 @@ fun UltraRealisticHolographicEffectShader(
 
     var composableSize by remember { mutableStateOf(Size.Zero) }
 
-    // RenderEffect avec toutes les dépendances
+    // RenderEffect avec les dépendances mises à jour
     val renderEffect = if (composableSize.width > 0f && composableSize.height > 0f) {
         remember(
             shader,
             tiltPitch, tiltRoll, elapsedTime,
-            effectIntensity, shininess, roughness, fresnelPower,
-            rainbowScale, rainbowOffset, spectrumLayers,
-            normalStrength, microDetailScale,
-            subsurfaceStrength, subsurfaceThickness,
-            patternDensity, patternVisibility,
-            sparkleDensity, sparklePower, sparkleIntensity, sparkleSpeed,
-            chromaticAberrationStrength, animationSpeed, pulseIntensity
+            effectIntensity, fresnelPower,
+            rainbowScale, rainbowOffset,
+            normalStrength, microDetailScale
         ) {
             RenderEffect.createRuntimeShaderEffect(shader, "inputShader").asComposeRenderEffect()
         }
@@ -183,40 +162,15 @@ fun UltraRealisticHolographicEffectShader(
 
             // Effets principaux
             shader.setFloatUniform("uEffectIntensity", effectIntensity)
-            shader.setFloatUniform("uShininess", shininess)
-            shader.setFloatUniform("uRoughness", roughness)
             shader.setFloatUniform("uFresnelPower", fresnelPower)
 
             // Rainbow et spectre
             shader.setFloatUniform("uRainbowScale", rainbowScale)
             shader.setFloatUniform("uRainbowOffset", rainbowOffset)
-            shader.setFloatUniform("uSpectrumLayers", spectrumLayers)
 
             // Normales et micro-relief
             shader.setFloatUniform("uNormalStrength", normalStrength)
             shader.setFloatUniform("uMicroDetailScale", microDetailScale)
-            shader.setFloatUniform("uMetallic", metallic)
-
-            // Subsurface scattering
-            shader.setFloatUniform("uSubsurfaceStrength", subsurfaceStrength)
-            shader.setFloatUniform("uSubsurfaceThickness", subsurfaceThickness)
-
-            // Motifs
-            shader.setFloatUniform("uPatternDensity", patternDensity)
-            shader.setFloatUniform("uPatternVisibility", patternVisibility)
-
-            // Paillettes
-            shader.setFloatUniform("uSparkleDensity", sparkleDensity)
-            shader.setFloatUniform("uSparklePower", sparklePower)
-            shader.setFloatUniform("uSparkleIntensity", sparkleIntensity)
-            shader.setFloatUniform("uSparkleSpeed", sparkleSpeed)
-
-            // Aberration chromatique
-            shader.setFloatUniform("uChromaticAberrationStrength", chromaticAberrationStrength)
-
-            // Animation
-            shader.setFloatUniform("uAnimationSpeed", animationSpeed)
-            shader.setFloatUniform("uPulseIntensity", pulseIntensity)
 
             Log.d(TAG, "All shader uniforms set successfully")
         }
