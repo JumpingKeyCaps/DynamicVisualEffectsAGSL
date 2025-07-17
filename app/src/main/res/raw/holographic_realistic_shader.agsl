@@ -1,0 +1,180 @@
+// Ultra-Realistic Holographic Shader for Trading Card Effects
+// Texture d'entrée (bitmap/image)
+uniform shader inputShader;
+
+// Paramètres de base
+uniform float2 uResolution;
+uniform float uAspectRatio;
+uniform float uTime;
+
+// Capteurs de tilt
+uniform float uTiltPitch;
+uniform float uTiltRoll;
+
+// Effets principaux
+uniform float uEffectIntensity;
+uniform float uFresnelPower;
+
+// Rainbow et spectre
+uniform float uRainbowScale;
+uniform float uRainbowOffset;
+
+// Normales et micro-relief
+uniform float uNormalStrength;
+uniform float uMicroDetailScale;
+
+// Constantes
+float PI = 3.141592653589793;
+
+/**
+ * Générateur de bruit haute qualité
+ */
+float hash(float2 p) {
+    return fract(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float noise(float2 p) {
+    float2 i = floor(p);
+    float2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+
+    float a = hash(i);
+    float b = hash(i + float2(1.0, 0.0));
+    float c = hash(i + float2(0.0, 1.0));
+    float d = hash(i + float2(1.0, 1.0));
+
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+/**
+ * Bruit fractal pour plus de détails (FBM)
+ */
+float fbm(float2 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    float frequency = 1.0;
+    const int fixedOctaves = 3; // Gardé à 3 octaves comme demandé.
+
+    for (int i = 0; i < fixedOctaves; i++) {
+        value += amplitude * noise(p * frequency);
+        amplitude *= 0.5;
+        frequency *= 2.0;
+    }
+    return (value - 0.5) * 2.0;
+}
+
+/**
+ * Fonction rainbow améliorée avec plus de contrôle
+ */
+half3 enhancedRainbow(float t, float saturation) {
+    t = fract(t);
+
+    float h = t * 6.0;
+    float c = saturation;
+    float x = c * (1.0 - abs(fract(h * 0.5) * 2.0 - 1.0));
+
+    half3 color;
+    if (h < 1.0) color = half3(c, x, 0.0);
+    else if (h < 2.0) color = half3(x, c, 0.0);
+    else if (h < 3.0) color = half3(0.0, c, x);
+    else if (h < 4.0) color = half3(0.0, x, c);
+    else if (h < 5.0) color = half3(x, 0.0, c);
+    else color = half3(c, 0.0, x);
+
+    return color;
+}
+
+/**
+ * Calcul des normales perturbées pour le micro-relief
+ * <<< REVERTED TO ORIGINAL IMPLEMENTATION (dFdx/dFdy are not directly available like this in AGSL)
+ * This is the most computationally intensive part if uMicroDetailScale is high.
+ */
+float3 calculatePerturbedNormal(float2 uv, float3 baseNormal) {
+    float2 texelSize = 1.0 / uResolution;
+    // These four FBM calls are the main performance bottleneck for the normals.
+    float heightL = fbm((uv - float2(texelSize.x, 0.0)) * uMicroDetailScale);
+    float heightR = fbm((uv + float2(texelSize.x, 0.0)) * uMicroDetailScale);
+    float heightD = fbm((uv - float2(0.0, texelSize.y)) * uMicroDetailScale);
+    float heightU = fbm((uv + float2(0.0, texelSize.y)) * uMicroDetailScale);
+
+    float3 normal = baseNormal;
+    normal.x += (heightL - heightR) * uNormalStrength * uNormalStrength;
+    normal.y += (heightD - heightU) * uNormalStrength * uNormalStrength;
+
+    float xy_strength_sq = normal.x * normal.x + normal.y * normal.y;
+    normal.z = sqrt(max(0.0, 1.0 - xy_strength_sq));
+
+    return normalize(normal);
+}
+
+/**
+ * Effet arc-en-ciel multicouche ultra-réaliste
+ */
+half3 calculateMultiLayerRainbow(float2 uv, float3 viewDir, float time) {
+    float2 centeredUv = uv - 0.5;
+    centeredUv.x *= uAspectRatio;
+
+    float shift1 = dot(centeredUv, viewDir.xy) * uRainbowScale + time * 0.1 + uRainbowOffset;
+    float shift2 = dot(centeredUv * 1.2, float2(viewDir.y, -viewDir.x)) * uRainbowScale * 0.8 + time * 0.15;
+    float shift3 = length(centeredUv) * uRainbowScale * 1.5 + time * 0.2;
+
+    // OPTIMISATION : Conditionner l'ajout de bruit en fonction du mouvement (this part is good)
+    float noiseAmount = (abs(viewDir.x) + abs(viewDir.y)) * 2.0;
+    float noiseThreshold = 0.05;
+    float actualNoiseStrength = max(0.0, noiseAmount - noiseThreshold) / (1.0 - noiseThreshold);
+    actualNoiseStrength = smoothstep(0.0, 1.0, actualNoiseStrength);
+
+    shift1 += fbm(uv * 8.0 + time * 0.1) * 0.3 * actualNoiseStrength;
+    shift2 += fbm(uv * 12.0 + time * 0.15) * 0.2 * actualNoiseStrength;
+    shift3 += fbm(uv * 6.0 + time * 0.2) * 0.4 * actualNoiseStrength;
+
+    half3 rainbow1 = enhancedRainbow(shift1, 0.8) * 0.4;
+    half3 rainbow2 = enhancedRainbow(shift2, 0.9) * 0.3;
+    half3 rainbow3 = enhancedRainbow(shift3, 0.7) * 0.3;
+
+    return rainbow1 + rainbow2 + rainbow3;
+}
+
+/**
+ * Fonction principale du shader
+ */
+half4 main(float2 fragCoord) {
+    float2 uv = fragCoord / uResolution;
+    half4 originalColor = inputShader.eval(fragCoord);
+
+    // --- LOGIQUE D'ORIENTATION & VISIBILITÉ PAR DÉFAUT (as per our last discussion) ---
+    float rollFactor = 3.0;
+    float pitchFactor = 2.0;
+
+    float tiltX = uTiltRoll * rollFactor;
+    float tiltY = uTiltPitch * pitchFactor;
+
+    float defaultVisibilityOffset = -0.7; // Adjust this value for base visibility.
+
+    float3 viewDirection = normalize(float3(
+        tiltX,
+        tiltY + defaultVisibilityOffset, // Offset added to pitch for default visibility
+        1.0
+    ));
+
+    // If "screen towards ground" behavior for pitch is inverted, try:
+    // float3 viewDirection = normalize(float3(tiltX, -tiltY + defaultVisibilityOffset, 1.0));
+    // Or to completely ignore pitch influence, but keep default offset:
+    // float3 viewDirection = normalize(float3(tiltX, defaultVisibilityOffset, 1.0));
+
+    // --- END ORIENTATION LOGIC ---
+
+    float3 baseNormal = float3(0.0, 0.0, 1.0);
+    float3 perturbedNormal = calculatePerturbedNormal(uv, baseNormal);
+
+    half3 rainbowEffect = calculateMultiLayerRainbow(uv, viewDirection, uTime * 0.5);
+
+    float fresnel = pow(1.0 - max(0.0, dot(perturbedNormal, viewDirection)), uFresnelPower);
+    float reflectionIntensity = fresnel * uEffectIntensity;
+
+    rainbowEffect *= reflectionIntensity;
+
+    half3 finalColor = clamp(rainbowEffect, 0.0, 1.0);
+
+    return half4(finalColor, originalColor.a);
+}

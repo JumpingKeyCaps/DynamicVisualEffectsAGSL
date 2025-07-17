@@ -1,0 +1,174 @@
+uniform shader inputShader;
+
+uniform float2 uResolution;
+uniform float uAspectRatio;
+uniform float uTiltRoll;
+uniform float uTiltPitch;
+
+uniform float uHologramStrength;
+uniform float uIridescentDarknessThreshold;
+uniform float uChromaticAberrationStrength;
+
+uniform float uEffectIntensity;
+uniform float uFresnelPower;
+uniform float uRainbowScale;
+uniform float uRainbowOffset;
+uniform float uNormalStrength;
+uniform float uMicroDetailScale;
+
+float PI = 3.141592653589793;
+
+// --- Bruit
+float hash(float2 p) {
+    return fract(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float noise(float2 p) {
+    float2 i = floor(p);
+    float2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash(i);
+    float b = hash(i + float2(1.0, 0.0));
+    float c = hash(i + float2(0.0, 1.0));
+    float d = hash(i + float2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float fbm(float2 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    float frequency = 1.0;
+    const int fixedOctaves = 3;
+    for (int i = 0; i < fixedOctaves; i++) {
+        value += amplitude * noise(p * frequency);
+        amplitude *= 0.5;
+        frequency *= 2.0;
+    }
+    return (value - 0.5) * 2.0;
+}
+
+// --- HSV to RGB
+half3 enhancedRainbow(float t, float saturation) {
+    t = fract(t);
+    float h = t * 6.0;
+    float c = saturation;
+    float x = c * (1.0 - abs(fract(h * 0.5) * 2.0 - 1.0));
+    half3 color;
+    if (h < 1.0) color = half3(c, x, 0.0);
+    else if (h < 2.0) color = half3(x, c, 0.0);
+    else if (h < 3.0) color = half3(0.0, c, x);
+    else if (h < 4.0) color = half3(0.0, x, c);
+    else if (h < 5.0) color = half3(x, 0.0, c);
+    else color = half3(c, 0.0, x);
+    return color;
+}
+
+// --- Normale perturbée
+float3 calculatePerturbedNormal(float2 uv, float3 baseNormal) {
+    float2 texelSize = 1.0 / uResolution;
+    float heightL = fbm((uv - float2(texelSize.x, 0.0)) * uMicroDetailScale);
+    float heightR = fbm((uv + float2(texelSize.x, 0.0)) * uMicroDetailScale);
+    float heightD = fbm((uv - float2(0.0, texelSize.y)) * uMicroDetailScale);
+    float heightU = fbm((uv + float2(0.0, texelSize.y)) * uMicroDetailScale);
+
+    float3 normal = baseNormal;
+    normal.x += (heightL - heightR) * uNormalStrength * uNormalStrength;
+    normal.y += (heightD - heightU) * uNormalStrength * uNormalStrength;
+
+    float xy_strength_sq = normal.x * normal.x + normal.y * normal.y;
+    normal.z = sqrt(max(0.0, 1.0 - xy_strength_sq));
+    return normalize(normal);
+}
+
+// --- Motif iridescent auto-réactif
+half3 calculateMultiLayerRainbow(float2 uv, float3 viewDir, float3 perturbedNormal) {
+    float2 centeredUv = uv - 0.5;
+    centeredUv.x *= uAspectRatio;
+
+    float angleFactor = dot(viewDir, perturbedNormal); // [-1,1]
+    float angleFactor01 = clamp((angleFactor + 1.0) * 0.5, 0.0, 1.0); // [0,1]
+
+    // ↘ Angle direct = scale élevé (fins)
+    // ↗ Angle rasant = scale réduit (grosses taches)
+    float scaleFactor = mix(0.4, 1.4, 1.0 - angleFactor01);
+    float dynamicScale = uRainbowScale * scaleFactor;
+
+    float noiseAmount = (abs(perturbedNormal.x) + abs(perturbedNormal.y)) * 2.0;
+    float actualNoiseStrength = smoothstep(0.0, 1.0, max(0.0, (noiseAmount - 0.05) / 0.95));
+
+    float shift1 = dot(viewDir, perturbedNormal) * dynamicScale + fbm(uv * 8.0) * 0.3 * actualNoiseStrength + uRainbowOffset;
+    float shift2 = dot(viewDir, float3(perturbedNormal.y, -perturbedNormal.x, 0.0)) * dynamicScale * 0.8 + fbm(uv * 12.0) * 0.2 * actualNoiseStrength;
+    float shift3 = length(centeredUv + viewDir.xy) * dynamicScale * 1.5 + fbm(uv * 6.0) * 0.4 * actualNoiseStrength;
+
+    half3 rainbow1 = enhancedRainbow(shift1, 0.8) * 0.4;
+    half3 rainbow2 = enhancedRainbow(shift2, 0.9) * 0.3;
+    half3 rainbow3 = enhancedRainbow(shift3, 0.7) * 0.3;
+
+    return rainbow1 + rainbow2 + rainbow3;
+}
+
+// --- MAIN
+half4 main(float2 fragCoord) {
+    float2 uv = fragCoord / uResolution;
+    float2 centeredUv = uv - 0.5;
+    centeredUv.x *= uAspectRatio;
+
+    half4 originalColor = inputShader.eval(fragCoord);
+
+    // Test 1 : Retourne juste la couleur d'origine (image brute)
+    // return originalColor;
+
+    float luminance = dot(originalColor.rgb, half3(0.299, 0.587, 0.114));
+
+    float3 viewDirection = normalize(float3(
+        uTiltRoll * 3.0,
+        uTiltPitch * 2.0 - 0.7,
+        1.0
+    ));
+
+    float darknessMask = 1.0 - smoothstep(
+        uIridescentDarknessThreshold,
+        uIridescentDarknessThreshold + 0.2,
+        luminance
+    );
+    // Test 2 : Retourne uniquement le mask de luminance inversée (zone sombre)
+   // return half4(darknessMask.xxx, 1.0);
+
+
+
+    float globalHologramMask = darknessMask * uHologramStrength;
+
+    float3 baseNormal = float3(0.0, 0.0, 1.0);
+    float3 perturbedNormal = calculatePerturbedNormal(uv, baseNormal);
+
+    // Test 3 : Retourne la normale perturbée (visualisation vectorielle rgb)
+    //return half4(perturbedNormal * 0.5 + 0.5, 1.0);
+
+
+    half3 rainbowEffectPure = calculateMultiLayerRainbow(uv, viewDirection, perturbedNormal);
+
+    // Test 4 : Retourne l'effet arc-en-ciel seul (pas de mask, juste pour voir l'effet)
+   // return half4(rainbowEffectPure, 1.0);
+
+    float fresnelFactor = pow(1.0 - max(0.0, dot(baseNormal, viewDirection)), uFresnelPower);
+    float finalBrightnessMultiplier = mix(0.4, 1.0, fresnelFactor) * uEffectIntensity;
+    finalBrightnessMultiplier = clamp(finalBrightnessMultiplier, 0.0, 1.0);
+
+    half3 finalRainbowEffect = rainbowEffectPure * finalBrightnessMultiplier;
+
+    float chromaFactor = uChromaticAberrationStrength * abs(uTiltRoll);
+    half4 r = inputShader.eval(fragCoord + float2(chromaFactor * uResolution.x * 0.01, 0.0));
+    half4 b = inputShader.eval(fragCoord - float2(chromaFactor * uResolution.x * 0.01, 0.0));
+    half4 chroma = half4(r.r, originalColor.g, b.b, originalColor.a);
+
+    half3 finalColor = originalColor.rgb;
+
+    // Test 5 : Retourne juste le rendu aberration chromatique (pas d'arc en ciel)
+   // return half4(chroma.rgb, originalColor.a);
+
+    finalColor = mix(finalColor, chroma.rgb, uChromaticAberrationStrength);
+    finalColor = mix(finalColor, finalColor + finalRainbowEffect, globalHologramMask);
+    finalColor = clamp(finalColor, 0.0, 1.0);
+
+    return half4(finalColor, originalColor.a);
+}
