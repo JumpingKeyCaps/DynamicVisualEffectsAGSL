@@ -132,7 +132,7 @@ half4 main(float2 fragCoord) {
         luminance
     );
     // Test 2 : Retourne uniquement le mask de luminance inversée (zone sombre)
-    //return half4(darknessMask.xxx, 1.0);
+   // return half4(darknessMask.xxx, 1.0);
 
 
 
