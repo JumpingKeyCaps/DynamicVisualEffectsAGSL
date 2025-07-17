@@ -72,19 +72,44 @@ Simulates realistic ripples and refractions on a bitmap using a dynamic AGSL sha
 
 ---
 
-### 2. 🌈 Holographic Effects *(In Development)*
+### 2. 🌈 Holographic Effect - Real-Time / Sensor-Driven *(Implemented)*
 
-Simulates holographic foil and rainbow diffraction effects with dynamic light refraction.
+Simulates a dynamic holographic foil effect, with angle-sensitive iridescence, rainbow interference patterns, and chromatic distortion — all modulated in real time by the device’s physical orientation.
 
-- **Technical**:
-  - Angle-dependent rainbow gradients with smooth UV shifts.
-  - Layered noise + sine waves to mimic diffraction patterns.
-  - Specular highlights and subtle distortion for depth.
-- **Interaction**:
-  - Sensor-based view angle controls gradient movement.
-  - Touch creates shimmering pulses or rainbow flashes.
+#### 🧪 Technical Highlights:
+
+ - Procedural iridescence using multi-layered FBM noise and enhanced HSV rainbow mapping.
+
+ - Surface normals are perturbed with fine micro-details to create realistic light interference zones.
+
+ - Fresnel modulation enhances realism by increasing brightness at glancing angles.
+
+ - Dynamic chromatic aberration adds subtle color shift based on device tilt roll.
+
+ - Realtime device tilt input (pitch/roll) drives view-dependent shimmer and distortion.
+
+ - Darkness-based masking ensures the effect appears only in low-luminance areas (e.g., shadowed or black ink zones).
+
+
+#### 🧠 Interaction Design:
+
+ - Reacts to device orientation (pitch & roll) via TYPE_ROTATION_VECTOR sensor.
+
+ - Fully GPU-based with no bitmap mutation — can be applied live on images, cards or backgrounds.
+
+ - All parameters (intensity, relief, color scale…) are externally controllable via Composables.
+
+`Ideal for mimicking collectible card effects, stickers, security patterns, or oil-slick-like visuals`
+
+--
+
+| Holographic Effect | Rainbow Effect layer | Chromatic Aberration layer | 
+|:---:|:---:|:---:|
+| ![P1](screenshots/holo1.gif) | ![P2a](screenshots/holo2.gif) |  ![P2a](screenshots/holo3.gif) |
+
 
 ---
+
 
 ### 3. 💾 Distortion & Glitch Art *(Coming Soon)*
 
