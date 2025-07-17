@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             //default bitmap
-            val bitmap = ImageBitmap.imageResource(id = R.drawable.democard1)
+            val bitmap = ImageBitmap.imageResource(id = R.drawable.de2)
 
             DynamicVisualEffectsAGSLTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
