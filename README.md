@@ -134,54 +134,7 @@ Creates digital-style visual noise like chromatic aberration, glitches, and heat
 
 ---
 
-### 4. ✨ Luminous & Energy Effects *(Coming Soon)*
-
-Simulates plasma, shimmering aura, and iridescence like soap bubbles or oil on water.
-
-- **Technical**:
-  - **Iridescence**: Thin-film interference using angle-dependent color gradients.
-  - **Plasma/Aura**: Mix of noise + trig for energy visuals.
-- **Interaction**:
-  - Sensor-based view angle affects colors.
-  - Touch emits pulses or light bursts.
- 
-#### Iridescence Shaders Tasks
-
-- **Iridescence Effects**:
-  - Compute view direction from gyro.
-  - Use dot product or trig mapping to modulate color spectrum.
-
----
-
-### 5. 🔥 Fire Effect *(Coming Soon)*
-
-Generates realistic procedural flames that progressively "burn" and consume the bitmap.
-
-- **Technical**:
-  - Perlin/Simplex noise = organic flame shapes.
-  - Dynamic color mapping: bright yellow → deep red → ash tones.
-  - Fire propagation based on time + distance from ignition.
-  - Alpha reduction & pixel burn simulation.
-- **Interaction**:
-  - Long-press or swipe-up to ignite.
-  - Intensity/speed controlled by gesture frequency or pressure.
- 
-####  Fire Shader Tasks
-
-- **Noise Integration**:
-  - Use Perlin/Simplex (inline or pre-generated).
-  - Tune scale/frequency.
-- **Color Mapping**:
-  - Intensity → RGBA function (fire palette).
-- **Propagation Logic**:
-  - `fire = noise + (uv.y - y0) * speed - time`.
-  - Reduce alpha where fire intensity is high.
-- **Animation**:
-  - Link all motion to `u_time` for continuity.
-
----
-
-### 6. ⚡ Electric Sparks & Lightning *(Coming Soon)*
+### 4. ⚡ Electric Sparks & Lightning *(Coming Soon)*
 
 Generates stylized lightning bolts and crackling energy sparks across the screen.
 
@@ -195,7 +148,7 @@ Generates stylized lightning bolts and crackling energy sparks across the screen
 
 ---
 
-### 7. 🔍 Fisheye & Cathodic CRT Effect *(To Evaluate)*
+### 5. 🔍 Fisheye & Cathodic CRT Effect *(To Evaluate)*
 
 Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromatic aberration, and screen curvature.
 
@@ -211,7 +164,7 @@ Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromat
 
 ---
 
-### 8. ❄️ Frosted Glass / Frost Effect
+### 6. ❄️ Frosted Glass / Frost Effect *(To Evaluate)*
 
 Blurs and distorts the image as if viewed through frosted glass.
 
