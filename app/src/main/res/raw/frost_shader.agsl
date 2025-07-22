@@ -1,0 +1,34 @@
+// agsl version 1.0
+
+
+// This is the input texture/bitmap that will be impacted by the frost effect.
+// It's typically the content of the Composable the shader is applied to.
+uniform shader inputShader;
+
+// The resolution (width, height) of the area where the shader is applied, in pixels.
+// Used for accurate coordinate calculations.
+uniform float2 uResolution;
+
+// The current animation time, in seconds. This value advances each frame,
+uniform float uTime;
+
+// Aspect ratio for proper coordinate normalization
+uniform float uAspectRatio;
+
+/**
+ * The main entry point for the fragment shader. This function is executed for every pixel
+ * on the screen (or the target drawing surface).
+ *
+ * @param fragCoord The absolute (x, y) coordinate of the current pixel being processed, in pixels.
+ * @return The final color for the current pixel with holographic effect applied.
+ */
+half4 main(float2 fragCoord) {
+    // Normalize coordinates to [0, 1] range
+    float2 uv = fragCoord / uResolution;
+
+    // Adjust for aspect ratio
+    float2 centeredUv = uv - 0.5;
+    centeredUv.x *= uAspectRatio;
+
+    // Sample the original image
+    half4 originalColor = inputShader.eval(fragCoord);
