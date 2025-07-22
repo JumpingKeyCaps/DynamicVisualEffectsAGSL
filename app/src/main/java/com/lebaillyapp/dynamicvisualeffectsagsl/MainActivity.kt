@@ -8,12 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
@@ -21,18 +15,12 @@ import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.Ho
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.OptimizedHolographicCardEffect
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.UltraRealisticHolographicEffectShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
-import kotlin.math.cos
-import kotlin.math.sin
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-
-
-
-
         setContent {
             //default bitmap
             val bitmap = ImageBitmap.imageResource(id = R.drawable.de2)
@@ -44,33 +32,15 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                             .fillMaxSize()
                     ) {
-
                         // [1] - Water Effect composition screen
-
                         /**
-
                                 WaterEffectBitmapShader(
                                     modifier = Modifier.fillMaxSize(),
                                     bitmap = bitmap,
                                     shaderResId = R.raw.water_shader
                                 )
-
                         */
-
-
-                        // [2] - Fire Effect composition screen
-
-                        /**
-                        FireEffectScreen(
-                            modifier = Modifier.fillMaxSize(),
-                            bitmap = bitmap,
-                            shaderResId = R.raw.fire_shader
-                        )
-
-                        */
-
-                        // [5] - Holographic Effect composition screen
-
+                        // [2] - Holographic Effect composition screen
                         /**
                         HolographicEffectBitmapShader(
                             bitmap = bitmap,
@@ -80,11 +50,6 @@ class MainActivity : ComponentActivity() {
                             tiltAngle = 0.5f         // Angle de base pour les reflets
                         )
                     */
-
-
-
-
-
                         /**v3
                         UltraRealisticHolographicEffectShader(
                             modifier = Modifier.fillMaxSize(),
@@ -98,19 +63,17 @@ class MainActivity : ComponentActivity() {
                             normalStrength = 2.0f,
                             microDetailScale = 45.0f
                         )
-
-
                          */
 
-
+                        /**
                         OptimizedHolographicCardEffect(
                             modifier = Modifier.fillMaxSize(),
                             bitmap = bitmap,
                             shaderResId = R.raw.holographic_card_shader,
 
                         )
-
-
+                        */
+                        // [3] - Frost Effect composition screen
 
 
                     }
