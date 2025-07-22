@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
+import com.lebaillyapp.dynamicvisualeffectsagsl.frostEffect.FrostEffectImage
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.HolographicEffectBitmapShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.OptimizedHolographicCardEffect
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.UltraRealisticHolographicEffectShader
@@ -74,7 +75,11 @@ class MainActivity : ComponentActivity() {
                         )
                         */
                         // [3] - Frost Effect composition screen
-
+                        FrostEffectImage(
+                            modifier = Modifier.fillMaxSize(),
+                            bitmap = bitmap,
+                            shaderResId = R.raw.frost_shader
+                        )
 
                     }
                 }
