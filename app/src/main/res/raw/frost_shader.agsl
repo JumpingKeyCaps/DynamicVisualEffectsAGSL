@@ -70,7 +70,10 @@ half4 main(float2 fragCoord) {
         noise(centeredUv * 40.0 + uTime) - 0.5,
         noise(centeredUv * 40.0 - uTime) - 0.5
     );
-    float2 distortedUV = uv + offset * 0.005 * frostMask * uFrostIntensity;
+
+
+    float strongnessUV = 5.05;
+    float2 distortedUV = uv + offset * strongnessUV * frostMask * uFrostIntensity;
 
     // Étape 5 : couleur givre + fondu
     half4 frostColor = inputShader.eval(distortedUV * uResolution);
@@ -92,17 +95,15 @@ half4 main(float2 fragCoord) {
     // return half4(propagationMask, propagationMask, propagationMask, 1.0);
 
     // Test Étape 2 : bruit fractal (bruit en gris)
-    // return half4(frostNoise, frostNoise, frostNoise, 1.0);
+   //  return half4(frostNoise, frostNoise, frostNoise, 1.0);
 
     // Test Étape 3 : masque final combiné
     // return half4(frostMask, frostMask, frostMask, 1.0);
 
     // Test Étape 4 : UV déformées (image déformée)
-    // return inputShader.eval(distortedUV * uResolution);
+     return inputShader.eval(distortedUV * uResolution);
 
-    // Test Étape 5 : couleur givrée simple
-    // return frostColor;
 
-    // Test Étape 6 : couleur givrée + brillance
-    return frostColor;
+    // Test Étape 5 : couleur givrée + brillance
+    //return frostColor;
 }
