@@ -1,34 +1,108 @@
 // agsl version 1.0
 
-
-// This is the input texture/bitmap that will be impacted by the frost effect.
-// It's typically the content of the Composable the shader is applied to.
 uniform shader inputShader;
-
-// The resolution (width, height) of the area where the shader is applied, in pixels.
-// Used for accurate coordinate calculations.
 uniform float2 uResolution;
-
-// The current animation time, in seconds. This value advances each frame,
-uniform float uTime;
-
-// Aspect ratio for proper coordinate normalization
 uniform float uAspectRatio;
+uniform float uTime;
+uniform float2 uTouch;
+uniform float uFrostIntensity;
+uniform float uSpeed;
 
-/**
- * The main entry point for the fragment shader. This function is executed for every pixel
- * on the screen (or the target drawing surface).
- *
- * @param fragCoord The absolute (x, y) coordinate of the current pixel being processed, in pixels.
- * @return The final color for the current pixel with holographic effect applied.
- */
+// UTILS
+
+float random(float2 st) {
+    return fract(sin(dot(st, float2(12.9898, 78.233))) * 43758.5453123);
+}
+
+float noise(float2 st) {
+    float2 i = floor(st);
+    float2 f = fract(st);
+    float a = random(i);
+    float b = random(i + float2(1.0, 0.0));
+    float c = random(i + float2(0.0, 1.0));
+    float d = random(i + float2(1.0, 1.0));
+    float2 u = f * f * (3.0 - 2.0 * f);
+    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+}
+
+float fbm(float2 st) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    for (int i = 0; i < 5; i++) {
+        value += amplitude * noise(st);
+        st *= 2.0;
+        amplitude *= 0.5;
+    }
+    return value;
+}
+
+// --- MAIN ---
+
 half4 main(float2 fragCoord) {
-    // Normalize coordinates to [0, 1] range
+    // Étape 0 : coordonnées UV
     float2 uv = fragCoord / uResolution;
 
-    // Adjust for aspect ratio
+    // Distance pour cercle parfait corrigée
+    float2 touchUV = uTouch / uResolution;
+    float2 delta = uv - touchUV;
+    delta.x *= uAspectRatio;
+    float distToTouch = length(delta);
+
+    // Étape 1 : masque propagation givre
+    float maxRadius = 1.5;
+    float frostRadius = clamp(uTime * uSpeed, 0.0, maxRadius);
+    float lowerEdge = max(0.0, frostRadius - 0.1);
+    float propagationMask = 1.0 - smoothstep(lowerEdge, frostRadius, distToTouch);
+
+    // Étape 2 : bruit fractal animé (cristaux)
     float2 centeredUv = uv - 0.5;
     centeredUv.x *= uAspectRatio;
+    centeredUv += 0.5;
 
-    // Sample the original image
-    half4 originalColor = inputShader.eval(fragCoord);
+    float2 noiseCoords = centeredUv * 20.0 + uTime * 0.5;
+    float frostNoise = fbm(noiseCoords);
+
+    // Étape 3 : masque final combiné
+    float frostMask = propagationMask * smoothstep(0.4, 0.7, frostNoise);
+
+    // Étape 4 : déformation subtile (réfraction)
+    float2 offset = float2(
+        noise(centeredUv * 40.0 + uTime) - 0.5,
+        noise(centeredUv * 40.0 - uTime) - 0.5
+    );
+    float2 distortedUV = uv + offset * 0.005 * frostMask * uFrostIntensity;
+
+    // Étape 5 : couleur givre + fondu
+    half4 frostColor = inputShader.eval(distortedUV * uResolution);
+
+    frostColor.rgb = mix(frostColor.rgb, half3(0.8, 0.85, 1.0), frostMask * 0.6 * uFrostIntensity);
+
+    // Étape 6 : brillance / scintillement (simple fresnel approximé)
+    float3 viewDir = normalize(float3(centeredUv, 1.0));
+    float fresnel = pow(1.0 - dot(viewDir, float3(0.0, 0.0, 1.0)), 3.0);
+    float sparkle = smoothstep(0.7, 1.0, frostNoise) * fresnel * 0.4 * uFrostIntensity;
+    frostColor.rgb += sparkle;
+
+    // === TESTS RETOUR ===
+
+    // Test Étape 0 : afficher image brute
+    // return inputShader.eval(fragCoord);
+
+    // Test Étape 1 : masque propagation (cercle gris)
+    // return half4(propagationMask, propagationMask, propagationMask, 1.0);
+
+    // Test Étape 2 : bruit fractal (bruit en gris)
+    // return half4(frostNoise, frostNoise, frostNoise, 1.0);
+
+    // Test Étape 3 : masque final combiné
+    // return half4(frostMask, frostMask, frostMask, 1.0);
+
+    // Test Étape 4 : UV déformées (image déformée)
+    // return inputShader.eval(distortedUV * uResolution);
+
+    // Test Étape 5 : couleur givrée simple
+    // return frostColor;
+
+    // Test Étape 6 : couleur givrée + brillance
+    return frostColor;
+}
