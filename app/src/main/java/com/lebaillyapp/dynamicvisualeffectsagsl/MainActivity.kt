@@ -1,5 +1,6 @@
 package com.lebaillyapp.dynamicvisualeffectsagsl
 
+import FrostEffectImage
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,7 +12,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
-import com.lebaillyapp.dynamicvisualeffectsagsl.frostEffect.composition.FrostEffectImage
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
 
 
