@@ -1,15 +1,10 @@
-package com.lebaillyapp.dynamicvisualeffectsagsl.frostEffect
+package com.lebaillyapp.dynamicvisualeffectsagsl.frostEffect.composition
 
 
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
-import android.util.Log
 import androidx.annotation.RawRes
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
