@@ -3,13 +3,23 @@
 uniform shader inputShader;
 uniform float2 uResolution;
 uniform float uAspectRatio;
-uniform float uTime;
-uniform float2 uTouch;
-uniform float uFrostIntensity;
-uniform float uSpeed;
+uniform float uTime; // Temps global continu
 
-// UTILS
+// NOUVEAUX UNIFORMS POUR LES POINTS DE GIVRE (issus du ViewModel)
+const int MAX_FROST_POINTS = 20; // Doit correspondre à MAX_FROST_POINTS dans FrostViewModel
+uniform int uNumFrostPoints; // Nombre réel de points de givre actifs
+uniform float2 uFrostPointOrigins[MAX_FROST_POINTS];     // Positions (x, y) des points de givre
+uniform float uFrostPointStartTimes[MAX_FROST_POINTS];  // Temps de début de chaque point
+uniform float uFrostPointIntensities[MAX_FROST_POINTS]; // Intensités actuelles (déjà amorties par le ViewModel)
+uniform float uFrostPointSpeeds[MAX_FROST_POINTS];      // Vitesses de propagation de chaque point
 
+uniform float uGlobalFrostDecayRate;    // Taux de décroissance global pour le calcul de l'intensité
+uniform float uMinEffectThreshold;      // Seuil d'intensité minimale pour que le point ait un effet
+
+
+
+
+// UTILS (inchangées)
 float random(float2 st) {
     return fract(sin(dot(st, float2(12.9898, 78.233))) * 43758.5453123);
 }
@@ -41,69 +51,123 @@ float fbm(float2 st) {
 half4 main(float2 fragCoord) {
     // Étape 0 : coordonnées UV
     float2 uv = fragCoord / uResolution;
-
-    // Distance pour cercle parfait corrigée
-    float2 touchUV = uTouch / uResolution;
-    float2 delta = uv - touchUV;
-    delta.x *= uAspectRatio;
-    float distToTouch = length(delta);
-
-    // Étape 1 : masque propagation givre
-    float maxRadius = 1.5;
-    float frostRadius = clamp(uTime * uSpeed, 0.0, maxRadius);
-    float lowerEdge = max(0.0, frostRadius - 0.1);
-    float propagationMask = 1.0 - smoothstep(lowerEdge, frostRadius, distToTouch);
-
-    // Étape 2 : bruit fractal animé (cristaux)
     float2 centeredUv = uv - 0.5;
     centeredUv.x *= uAspectRatio;
     centeredUv += 0.5;
 
-    float2 noiseCoords = centeredUv * 20.0 + uTime * 0.5;
-    float frostNoise = fbm(noiseCoords);
+    // Initialise les valeurs accumulées pour le givre
+    float totalPropagationMask = 0.0; // Ajouté pour le test Étape 1
+    float totalFrostNoise = 0.0;      // Ajouté pour le test Étape 2
+    float totalFrostMask = 0.0;
+    float2 totalOffset = float2(0.0, 0.0);
+    float combinedSparkle = 0.0;
 
-    // Étape 3 : masque final combiné
-    float frostMask = propagationMask * smoothstep(0.4, 0.7, frostNoise);
+    // Pour chaque point de givre actif
+    for (int i = 0; i < MAX_FROST_POINTS; i++) {
+        // N'oubliez pas cette condition ! Elle est cruciale pour ne traiter que les points actifs.
+        if (i >= uNumFrostPoints) {
+            break; // Sortir de la boucle si on a traité tous les points actifs
+        }
 
-    // Étape 4 : déformation subtile (réfraction)
-    float2 offset = float2(
-        noise(centeredUv * 40.0 + uTime) - 0.5,
-        noise(centeredUv * 40.0 - uTime) - 0.5
-    );
+        // Récupérer les paramètres du point de givre actuel
+        float2 frostPointOrigin = uFrostPointOrigins[i];
+        float frostPointStartTime = uFrostPointStartTimes[i];
+        float frostPointInitialIntensity = uFrostPointIntensities[i]; // C'est déjà l'intensité actuelle, pas l'initiale
+        float frostPointSpeed = uFrostPointSpeeds[i];
+
+        // Vérifier si l'intensité est suffisante pour cet impact
+        if (frostPointInitialIntensity < uMinEffectThreshold) {
+            continue; // Passer au point suivant si son effet est trop faible
+        }
+
+        // Temps écoulé pour ce point de givre
+        float elapsedFrostTime = uTime - frostPointStartTime;
+
+        // Calcul de la distance au point de givre actuel (corrigée pour l'aspect ratio)
+        float2 frostPointUV = frostPointOrigin / uResolution;
+        float2 delta = uv - frostPointUV;
+        delta.x *= uAspectRatio;
+        float distToFrostPoint = length(delta);
+
+        // Étape 1 : masque propagation givre pour CE point
+        float maxRadius = 1.5; // Rayon max de propagation du givre
+        // La vitesse de propagation peut être modulée par l'intensité actuelle du point
+        float currentPropagationSpeed = frostPointSpeed * frostPointInitialIntensity;
+        // Normaliser le rayon par la dimension la plus petite (ou la plus grande) de la résolution pour un effet plus consistant
+        float frostRadius = clamp(elapsedFrostTime * currentPropagationSpeed / min(uResolution.x, uResolution.y), 0.0, maxRadius);
 
 
-    float strongnessUV = 5.05;
-    float2 distortedUV = uv + offset * strongnessUV * frostMask * uFrostIntensity;
+        // Ajustement des bords pour le smoothstep basé sur l'intensité actuelle
+        float lowerEdge = max(0.0, frostRadius - 0.1 * frostPointInitialIntensity); // Le bord peut être plus doux ou plus net
+        float propagationMask = 1.0 - smoothstep(lowerEdge, frostRadius, distToFrostPoint);
 
-    // Étape 5 : couleur givre + fondu
+        // Ajuster le masque de propagation par l'intensité du point
+        propagationMask *= frostPointInitialIntensity;
+        totalPropagationMask += propagationMask; // Accumulation pour le test
+
+
+        // Étape 2 : bruit fractal animé (cristaux) pour CE point
+        float2 noiseCoords = centeredUv * 20.0 + uTime * 0.5 + float(i) * 0.1; // Ajouter 'i' pour une légère variation par point
+        float frostNoise = fbm(noiseCoords);
+        totalFrostNoise += frostNoise; // Accumulation pour le test
+
+
+        // Étape 3 : masque final combiné pour CE point
+        // On module le seuil de smoothstep par l'intensité du point pour un effet plus doux/plus fort
+        float currentFrostMask = propagationMask * smoothstep(0.4 * frostPointInitialIntensity, 0.7 * frostPointInitialIntensity, frostNoise);
+
+        // Accumuler les masques et offsets de tous les points
+        totalFrostMask += currentFrostMask; // Accumulation pour le test
+
+
+        // Étape 4 : déformation subtile (réfraction) pour CE point
+        float2 offset = float2(
+            noise(centeredUv * 40.0 + uTime + float(i) * 0.2) - 0.5,
+            noise(centeredUv * 40.0 - uTime + float(i) * 0.3) - 0.5
+        );
+        float strongnessUV = 5.05; // Force de la déformation
+        totalOffset += offset * strongnessUV * currentFrostMask; // Accumuler l'offset
+
+
+        // Étape 6 : brillance / scintillement (simple fresnel approximé) pour CE point
+        float3 viewDir = normalize(float3(centeredUv, 1.0));
+        float fresnel = pow(1.0 - dot(viewDir, float3(0.0, 0.0, 1.0)), 3.0);
+        float sparkle = smoothstep(0.7, 1.0, frostNoise) * fresnel * 0.4 * frostPointInitialIntensity;
+        combinedSparkle += sparkle; // Accumuler le scintillement
+    }
+
+    // Limiter les valeurs totales accumulées pour éviter la saturation excessive
+    totalPropagationMask = clamp(totalPropagationMask, 0.0, 1.0);
+    totalFrostNoise = clamp(totalFrostNoise, 0.0, 1.0);
+    totalFrostMask = clamp(totalFrostMask, 0.0, 1.0);
+    combinedSparkle = clamp(combinedSparkle, 0.0, 1.0);
+
+
+    // Appliquer la déformation totale aux UV de l'image source
+    float2 distortedUV = uv + totalOffset * totalFrostMask; // L'offset est aussi modulé par le masque total
     half4 frostColor = inputShader.eval(distortedUV * uResolution);
 
-    frostColor.rgb = mix(frostColor.rgb, half3(0.8, 0.85, 1.0), frostMask * 0.6 * uFrostIntensity);
-
-    // Étape 6 : brillance / scintillement (simple fresnel approximé)
-    float3 viewDir = normalize(float3(centeredUv, 1.0));
-    float fresnel = pow(1.0 - dot(viewDir, float3(0.0, 0.0, 1.0)), 3.0);
-    float sparkle = smoothstep(0.7, 1.0, frostNoise) * fresnel * 0.4 * uFrostIntensity;
-    frostColor.rgb += sparkle;
+    // Appliquer la couleur de givre globale et la brillance
+    frostColor.rgb = mix(frostColor.rgb, half3(0.8, 0.85, 1.0), totalFrostMask * 0.6); // Couleur du givre
+    frostColor.rgb += combinedSparkle; // Ajouter le scintillement combiné
 
     // === TESTS RETOUR ===
 
     // Test Étape 0 : afficher image brute
-    // return inputShader.eval(fragCoord);
+   // return inputShader.eval(fragCoord);
 
-    // Test Étape 1 : masque propagation (cercle gris)
-    // return half4(propagationMask, propagationMask, propagationMask, 1.0);
+    // Test Étape 1 : masque propagation (cercle gris) - combiné de tous les points
+    // return half4(totalPropagationMask, totalPropagationMask, totalPropagationMask, 1.0);
 
-    // Test Étape 2 : bruit fractal (bruit en gris)
-   //  return half4(frostNoise, frostNoise, frostNoise, 1.0);
+    // Test Étape 2 : bruit fractal (bruit en gris) - combiné de tous les points
+    // return half4(totalFrostNoise, totalFrostNoise, totalFrostNoise, 1.0);
 
     // Test Étape 3 : masque final combiné
-    // return half4(frostMask, frostMask, frostMask, 1.0);
+     //return half4(totalFrostMask, totalFrostMask, totalFrostMask, 1.0);
 
     // Test Étape 4 : UV déformées (image déformée)
-     return inputShader.eval(distortedUV * uResolution);
+     return inputShader.eval(distortedUV * uResolution); // C'est la ligne active par défaut
 
-
-    // Test Étape 5 : couleur givrée + brillance
-    //return frostColor;
+    // Test Étape 5 : couleur givrée + brillance (le résultat final avant le return de base)
+    // return frostColor;
 }
