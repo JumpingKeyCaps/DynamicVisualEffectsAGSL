@@ -1,43 +1,37 @@
-package com.lebaillyapp.dynamicvisualeffectsagsl.frostEffect.composition
-
-
-import android.graphics.RenderEffect
+import android.graphics.RenderEffect // CELLE-CI EST CORRECTE, COMME DANS TON CODE ORIGINAL
 import android.graphics.RuntimeShader
+import android.util.Log
 import androidx.annotation.RawRes
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.toSize
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lebaillyapp.dynamicvisualeffectsagsl.frostEffect.viewmodel.FrostViewModel
+
 
 @Composable
 fun FrostEffectImage(
     modifier: Modifier = Modifier,
     bitmap: ImageBitmap,
     @RawRes shaderResId: Int,
-    frostIntensity: Float = 1.0f,
-    frostSpeed: Float = 0.1f
+    frostViewModel: FrostViewModel = viewModel()
 ) {
     val context = LocalContext.current
+
     val shaderCode = remember {
         context.resources.openRawResource(shaderResId)
             .bufferedReader().use { it.readText() }
@@ -45,43 +39,24 @@ fun FrostEffectImage(
     val shader = remember { RuntimeShader(shaderCode) }
     var composableSize by remember { mutableStateOf(Size.Zero) }
 
-    var isTouching by remember { mutableStateOf(false) }
-    var frostTime by remember { mutableStateOf(0f) }
+    var currentTimeSeconds by remember { mutableFloatStateOf(0f) }
 
-
-    val maxTime = 15f // durée totale de l'animation en secondes (fixe)
-
-    val animatable = remember { Animatable(0f) }
-
-    LaunchedEffect(isTouching) {
-        if (isTouching) {
-            animatable.animateTo(maxTime, animationSpec = tween((maxTime * 1000).toInt()))
-        } else {
-            animatable.animateTo(0f, animationSpec = tween((maxTime * 1000).toInt()))
-        }
-    }
-
-    LaunchedEffect(animatable) {
-        snapshotFlow { animatable.value }.collect { value ->
-            frostTime = value
-        }
-    }
-
-    var touchPosition by remember { mutableStateOf(Offset.Zero) }
-
-    val gestureModifier = Modifier.pointerInput(Unit) {
-        detectTapGestures(
-            onPress = { offset ->
-                isTouching = true
-                touchPosition = offset
-                tryAwaitRelease()
-                isTouching = false
+    LaunchedEffect(Unit) {
+        val startTime = System.nanoTime() // Correction: System.nanoTime() est la bonne fonction
+        while (true) {
+            withFrameNanos { frameTime ->
+                currentTimeSeconds = (frameTime - startTime) / 1_000_000_000f
             }
-        )
+            frostViewModel.cleanupFrostPoints(currentTimeSeconds)
+            kotlinx.coroutines.delay(16)
+        }
     }
 
-    val renderEffect = remember(shader, frostIntensity, frostTime, touchPosition) {
+    val currentShaderParams = frostViewModel.getShaderUniforms(currentTimeSeconds)
+
+    val renderEffect = remember(shader, composableSize, currentShaderParams) {
         if (composableSize.width > 0f && composableSize.height > 0f) {
+            // Ici, RenderEffect est android.graphics.RenderEffect, et l'extension createRuntimeShaderEffect est bien importée
             RenderEffect.createRuntimeShaderEffect(shader, "inputShader")
                 .asComposeRenderEffect()
         } else null
@@ -91,24 +66,49 @@ fun FrostEffectImage(
         if (composableSize.width > 0f && composableSize.height > 0f) {
             shader.setFloatUniform("uResolution", composableSize.width, composableSize.height)
             shader.setFloatUniform("uAspectRatio", composableSize.width / composableSize.height)
-            shader.setFloatUniform("uTime", frostTime)
-            shader.setFloatUniform("uTouch", touchPosition.x, touchPosition.y)
-            shader.setFloatUniform("uFrostIntensity", frostIntensity)
-            shader.setFloatUniform("uSpeed", frostSpeed)
+            shader.setFloatUniform("uTime", currentTimeSeconds)
+
+            shader.setIntUniform("uNumFrostPoints", currentShaderParams.numFrostPoints)
+            shader.setFloatUniform("uFrostPointOrigins", currentShaderParams.origins)
+            shader.setFloatUniform("uFrostPointStartTimes", currentShaderParams.startTimes)
+            shader.setFloatUniform("uFrostPointIntensities", currentShaderParams.intensities)
+            shader.setFloatUniform("uFrostPointSpeeds", currentShaderParams.speeds)
+            shader.setFloatUniform("uGlobalFrostDecayRate", currentShaderParams.globalDecayRate)
+            shader.setFloatUniform("uMinEffectThreshold", currentShaderParams.minEffectThreshold)
+        }
+    }
+
+    val touchModifier = Modifier.pointerInput(Unit) {
+        forEachGesture {
+            awaitPointerEventScope {
+                var event = awaitPointerEvent()
+                event.changes.forEach { change ->
+                    if (change.pressed) {
+                        frostViewModel.addFrostPoint(change.position, change.id.value.toInt(), currentTimeSeconds)
+                    }
+                }
+                while (event.changes.any { it.pressed }) {
+                    event = awaitPointerEvent()
+                    event.changes.forEach { change ->
+                        if (change.pressed) {
+                            frostViewModel.addFrostPoint(change.position, change.id.value.toInt(), currentTimeSeconds)
+                        }
+                    }
+                }
+            }
         }
     }
 
     Image(
-        painter = BitmapPainter(bitmap),
+        painter = androidx.compose.ui.graphics.painter.BitmapPainter(bitmap), // Préciser le package pour éviter les ambiguïtés
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = modifier
-            .then(gestureModifier)
+            .fillMaxSize()
             .onSizeChanged { composableSize = it.toSize() }
+            .then(touchModifier)
             .graphicsLayer {
                 renderEffect?.let { this.renderEffect = it }
             }
     )
 }
-
-
