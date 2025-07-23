@@ -11,10 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
-import com.lebaillyapp.dynamicvisualeffectsagsl.frostEffect.FrostEffectImage
-import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.HolographicEffectBitmapShader
-import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.OptimizedHolographicCardEffect
-import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.UltraRealisticHolographicEffectShader
+import com.lebaillyapp.dynamicvisualeffectsagsl.frostEffect.composition.FrostEffectImage
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
 
 
@@ -24,7 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             //default bitmap
-            val bitmap = ImageBitmap.imageResource(id = R.drawable.de2)
+            val bitmap = ImageBitmap.imageResource(id = R.drawable.dem002)
 
             DynamicVisualEffectsAGSLTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
