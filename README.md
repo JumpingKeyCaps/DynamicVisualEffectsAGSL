@@ -45,7 +45,7 @@ The goal is to demonstrate the power of shaders combined with **touch input** an
 
 ## 🚀 Implemented / In Progress Features
 
-This PoC is structured around four major graphic effects, each designed to be manipulated by specific interactions.
+This PoC is structured around 6 major graphic effects, each designed to be manipulated by specific interactions.
 
 ---
 
