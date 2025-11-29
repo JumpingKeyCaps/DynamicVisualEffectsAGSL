@@ -20,6 +20,7 @@ import androidx.compose.ui.res.imageResource
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.HolographicEffectBitmapShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.OptimizedHolographicCardEffect
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.UltraRealisticHolographicEffectShader
+import com.lebaillyapp.dynamicvisualeffectsagsl.topographicflowEffect.TopographicFlowShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
 import kotlin.math.cos
 import kotlin.math.sin
@@ -29,88 +30,87 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-
-
-
-
         setContent {
             //default bitmap
             val bitmap = ImageBitmap.imageResource(id = R.drawable.de2)
 
             DynamicVisualEffectsAGSLTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize()
-                    ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
 
-                        // [1] - Water Effect composition screen
+                    // [1] - Water Effect composition screen
 
-                        /**
+                    /**
 
-                                WaterEffectBitmapShader(
-                                    modifier = Modifier.fillMaxSize(),
-                                    bitmap = bitmap,
-                                    shaderResId = R.raw.water_shader
-                                )
+                    WaterEffectBitmapShader(
+                    modifier = Modifier.fillMaxSize(),
+                    bitmap = bitmap,
+                    shaderResId = R.raw.water_shader
+                    )
 
-                        */
+                     */
 
 
 
 
-                        // [2] - Holographic Effect composition screen
+                    // [2] - Holographic Effect composition screen
 
-                        /**
-                        HolographicEffectBitmapShader(
-                            bitmap = bitmap,
-                            shaderResId = R.raw.holographic_base_shader,
-                            intensity = 0.99f,        // Intensité globale
-                            shimmerSpeed = 1.2f,     // Vitesse d'animation
-                            tiltAngle = 0.5f         // Angle de base pour les reflets
-                        )
-                    */
-
-                        /**v3
-                        UltraRealisticHolographicEffectShader(
-                            modifier = Modifier.fillMaxSize(),
-                            bitmap = bitmap,
-                            shaderResId = R.raw.holographic_realistic_shader,
-                            // Paramètres pertinents pour l'effet arc-en-ciel modulé par Fresnel
-                            effectIntensity = 6.8f,
-                            fresnelPower = 6.0f,
-                            rainbowScale = 1.2f,
-                            rainbowOffset = 0.2f,
-                            normalStrength = 2.0f,
-                            microDetailScale = 45.0f
-                        )
-
-
-                         */
+                    /**
+                    HolographicEffectBitmapShader(
+                    bitmap = bitmap,
+                    shaderResId = R.raw.holographic_base_shader,
+                    intensity = 0.99f,        // Intensité globale
+                    shimmerSpeed = 1.2f,     // Vitesse d'animation
+                    tiltAngle = 0.5f         // Angle de base pour les reflets
+                    )
+                     */
 
                     /**v3
-                        OptimizedHolographicCardEffect(
-                            modifier = Modifier.fillMaxSize(),
-                            bitmap = bitmap,
-                            shaderResId = R.raw.holographic_card_shader,
+                    UltraRealisticHolographicEffectShader(
+                    modifier = Modifier.fillMaxSize(),
+                    bitmap = bitmap,
+                    shaderResId = R.raw.holographic_realistic_shader,
+                    // Paramètres pertinents pour l'effet arc-en-ciel modulé par Fresnel
+                    effectIntensity = 6.8f,
+                    fresnelPower = 6.0f,
+                    rainbowScale = 1.2f,
+                    rainbowOffset = 0.2f,
+                    normalStrength = 2.0f,
+                    microDetailScale = 45.0f
+                    )
 
-                        )
-                    **/
+
+                     */
+
+                    /**v3
+                    OptimizedHolographicCardEffect(
+                    modifier = Modifier.fillMaxSize(),
+                    bitmap = bitmap,
+                    shaderResId = R.raw.holographic_card_shader,
+
+                    )
+                     **/
+
+
+                    // [3] - Liquid Topographic Flow composition screen
+                    TopographicFlowShader(modifier = Modifier)
+
+
 
                     // [X] - Fire Effect composition screen
 
-                        /**
-                        FireEffectScreen(
-                        modifier = Modifier.fillMaxSize(),
-                        bitmap = bitmap,
-                        shaderResId = R.raw.fire_shader
-                        )
+                    /**
+                    FireEffectScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    bitmap = bitmap,
+                    shaderResId = R.raw.fire_shader
+                    )
 
-                         */
+                     */
 
 
-                    }
                 }
             }
         }
