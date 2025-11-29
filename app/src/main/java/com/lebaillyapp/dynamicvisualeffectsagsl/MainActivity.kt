@@ -21,6 +21,7 @@ import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.Ho
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.OptimizedHolographicCardEffect
 import com.lebaillyapp.dynamicvisualeffectsagsl.holographicEffect.composition.UltraRealisticHolographicEffectShader
 import com.lebaillyapp.dynamicvisualeffectsagsl.topographicflowEffect.TopographicFlowShader
+import com.lebaillyapp.dynamicvisualeffectsagsl.topographicflowEffect.TopographicFlowShaderWithControls
 import com.lebaillyapp.dynamicvisualeffectsagsl.ui.theme.DynamicVisualEffectsAGSLTheme
 import kotlin.math.cos
 import kotlin.math.sin
@@ -95,7 +96,9 @@ class MainActivity : ComponentActivity() {
 
 
                     // [3] - Liquid Topographic Flow composition screen
-                    TopographicFlowShader(modifier = Modifier)
+                 //   TopographicFlowShader(modifier = Modifier)
+
+                    TopographicFlowShaderWithControls(modifier = Modifier)
 
 
 
