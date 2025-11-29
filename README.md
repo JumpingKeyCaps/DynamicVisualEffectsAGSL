@@ -112,8 +112,32 @@ Simulates a dynamic holographic foil effect, with angle-sensitive iridescence, r
 
 ---
 
+### 3. 🌀 Liquid Topographic Flow *(Implemented)*
 
-### 3. 💾 Distortion & Glitch Art *(Coming Soon)*
+Creates animated contour lines that behave like a flowing liquid surface. The effect blends smooth sinusoidal warping with multi-octave FBM noise to produce organic, fluid-like motions across a virtual topographic map.
+
+- **Technical**:  
+  - UV warping driven by time-based sinusoidal fields.  
+  - FBM noise adds micro-variations and undulation to contour spacing.  
+  - Procedural topographic lines generated via `fract()` distance mapping.  
+  - Dual-pass rendering for crisp lines and soft glow halos.  
+  - Highly tunable shader parameters: density, thickness, noise scale, glow width, contrast, flow speed.
+
+- **Visual Result**:  
+  Smooth, flowing iso-lines that evoke molten terrain, liquid cartography, or wave-driven elevation maps.
+
+- **Interaction**:  
+  Fully animatable through uniforms (speed, intensity, density) and compatible with touch or sensor input to influence distortion fields or flow direction.
+
+--
+
+| Topographic Effect 1 | Topographic Effect 2 | Topographic Effect 3 | 
+|:---:|:---:|:---:|
+| ![P1](screenshots/topo1.gif) | ![P2](screenshots/topo2.gif) |  ![P3](screenshots/topo3.gif) |
+
+---
+
+### 4. 💾 Distortion & Glitch Art *(Coming Soon)*
 
 Creates digital-style visual noise like chromatic aberration, glitches, and heat waves.
 
@@ -134,7 +158,7 @@ Creates digital-style visual noise like chromatic aberration, glitches, and heat
 
 ---
 
-### 4. ⚡ Electric Sparks & Lightning *(Coming Soon)*
+### 5. ⚡ Electric Sparks & Lightning *(Coming Soon)*
 
 Generates stylized lightning bolts and crackling energy sparks across the screen.
 
@@ -148,7 +172,7 @@ Generates stylized lightning bolts and crackling energy sparks across the screen
 
 ---
 
-### 5. 🔍 Fisheye & Cathodic CRT Effect *(To Evaluate)*
+### 6. 🔍 Fisheye & Cathodic CRT Effect *(To Evaluate)*
 
 Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromatic aberration, and screen curvature.
 
@@ -164,7 +188,7 @@ Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromat
 
 ---
 
-### 6. ❄️ Frosted Glass / Frost Effect *(To Evaluate)*
+### 7. ❄️ Frosted Glass / Frost Effect *(To Evaluate)*
 
 Blurs and distorts the image as if viewed through frosted glass.
 
