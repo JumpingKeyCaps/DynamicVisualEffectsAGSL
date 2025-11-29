@@ -58,18 +58,9 @@ class MainActivity : ComponentActivity() {
                         */
 
 
-                        // [2] - Fire Effect composition screen
 
-                        /**
-                        FireEffectScreen(
-                            modifier = Modifier.fillMaxSize(),
-                            bitmap = bitmap,
-                            shaderResId = R.raw.fire_shader
-                        )
 
-                        */
-
-                        // [5] - Holographic Effect composition screen
+                        // [2] - Holographic Effect composition screen
 
                         /**
                         HolographicEffectBitmapShader(
@@ -80,10 +71,6 @@ class MainActivity : ComponentActivity() {
                             tiltAngle = 0.5f         // Angle de base pour les reflets
                         )
                     */
-
-
-
-
 
                         /**v3
                         UltraRealisticHolographicEffectShader(
@@ -102,15 +89,25 @@ class MainActivity : ComponentActivity() {
 
                          */
 
-
+                    /**v3
                         OptimizedHolographicCardEffect(
                             modifier = Modifier.fillMaxSize(),
                             bitmap = bitmap,
                             shaderResId = R.raw.holographic_card_shader,
 
                         )
+                    **/
 
+                    // [X] - Fire Effect composition screen
 
+                        /**
+                        FireEffectScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        bitmap = bitmap,
+                        shaderResId = R.raw.fire_shader
+                        )
+
+                         */
 
 
                     }
