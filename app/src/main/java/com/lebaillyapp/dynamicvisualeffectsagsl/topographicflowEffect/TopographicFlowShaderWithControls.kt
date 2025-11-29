@@ -62,14 +62,14 @@ fun TopographicFlowShaderWithControls(
                 .background(Color(0x66000000))
                 .padding(8.dp)
         ) {
-            CompactSlider("Dens.", lineDensity, 1f, 50f) { lineDensity = it }
-            CompactSlider("Thick.", lineThickness, 0.01f, 0.2f) { lineThickness = it }
-            CompactSlider("Scale", noiseScale, 0.2f, 5f) { noiseScale = it }
-            CompactSlider("N-Int.", noiseIntensity, 0f, 1f) { noiseIntensity = it }
+            CompactSlider("Dens.", lineDensity, 1f, 80f) { lineDensity = it }
+            CompactSlider("Thick.", lineThickness, 0.01f, 0.5f) { lineThickness = it }
+            CompactSlider("N-Scale", noiseScale, -5f, 5f) { noiseScale = it }
+            CompactSlider("N-Int.", noiseIntensity, -1f, 1f) { noiseIntensity = it }
             CompactSlider("SpeedX", speedX, -1f, 1f) { speedX = it }
             CompactSlider("SpeedY", speedY, -1f, 1f) { speedY = it }
-            CompactSlider("GlowW", glowWidth, 0.5f, 3f) { glowWidth = it }
-            CompactSlider("GlowC", glowContrast, 0f, 2f) { glowContrast = it }
+            CompactSlider("GlowW", glowWidth, 0.0f, 10f) { glowWidth = it }
+            CompactSlider("GlowC", glowContrast, 0f, 10f) { glowContrast = it }
         }
     }
 }
