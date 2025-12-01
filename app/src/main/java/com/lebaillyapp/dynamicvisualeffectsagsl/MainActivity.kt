@@ -96,9 +96,9 @@ class MainActivity : ComponentActivity() {
 
 
                     // [3] - Liquid Topographic Flow composition screen
-                 //   TopographicFlowShader(modifier = Modifier)
+                    TopographicFlowShader(modifier = Modifier)
 
-                    TopographicFlowShaderWithControls(modifier = Modifier)
+                 //   TopographicFlowShaderWithControls(modifier = Modifier)
 
 
 

@@ -63,13 +63,13 @@ fun TopographicFlowShaderWithControls(
                 .padding(start = 10.dp, end = 10.dp, bottom = 30.dp)
         ) {
             CompactSlider("Dens.", lineDensity, 1f, 80f) { lineDensity = it }
-            CompactSlider("Thick.", lineThickness, 0.01f, 3f) { lineThickness = it }
-            CompactSlider("N-Scale", noiseScale, 0f, 30f) { noiseScale = it }
-            CompactSlider("N-Int.", noiseIntensity, 0f, 30f) { noiseIntensity = it }
-            CompactSlider("SpeedX", speedX, 0f, 10f) { speedX = it }
-            CompactSlider("SpeedY", speedY, 0f, 10f) { speedY = it }
-            CompactSlider("GlowW", glowWidth, 0.0f, 10f) { glowWidth = it }
-            CompactSlider("GlowC", glowContrast, 0f, 20f) { glowContrast = it }
+            CompactSlider("Thick.", lineThickness, 0.01f, 1f) { lineThickness = it }
+            CompactSlider("N-Scale", noiseScale, 0f, 20f) { noiseScale = it }
+            CompactSlider("N-Int.", noiseIntensity, 0f, 20f) { noiseIntensity = it }
+            CompactSlider("SpeedX", speedX, 0f, 1f) { speedX = it }
+            CompactSlider("SpeedY", speedY, 0f, 1f) { speedY = it }
+            CompactSlider("GlowW", glowWidth, 0.0f, 3f) { glowWidth = it }
+            CompactSlider("GlowC", glowContrast, 0f, 1f) { glowContrast = it }
         }
     }
 }
@@ -125,7 +125,7 @@ fun TopographicFlowShaderComposable(
     }
 
     val colorLine = Color(0xFFC6FF00)
-    val colorBg = Color(0xFF0A0A10)
+    val colorBg = Color(0xFF000000)
 
     Canvas(modifier = modifier.background(colorBg)) {
         shader.setFloatUniform("resolution", size.width, size.height)

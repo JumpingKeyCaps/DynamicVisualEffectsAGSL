@@ -26,12 +26,12 @@ fun TopographicFlowShader(modifier: Modifier) {
     val context = LocalContext.current
     val config = remember {
         TopographicFlowConfig(
-            lineDensity = 15.0f,
-            lineThickness = 0.05f,
+            lineDensity = 25.0f,
+            lineThickness = 0.15f,
             noiseScale = 1.0f,
-            noiseIntensity = 0.25f,
+            noiseIntensity = 0.5f,
             speedX = 0.20f,
-            speedY = 0.05f,
+            speedY = 0.25f,
             glowWidthMultiplier = 1.1f,
             glowContrast = 0.5f
         )
@@ -64,8 +64,8 @@ fun TopographicFlowShader(modifier: Modifier) {
         }
     }
 
-    val colorLine = remember { Color(0xFFFF9900) } // La couleur orange/or
-    val colorBg = remember { Color(0xFF0A0A10) } // Le fond noir sombre
+    val colorLine = remember { Color(0xFFFF9100) } // La couleur orange/or
+    val colorBg = remember { Color(0xFF000000) } // Le fond noir sombre
 
     Box(
         modifier = modifier
