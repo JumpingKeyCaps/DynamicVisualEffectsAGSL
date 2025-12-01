@@ -131,9 +131,9 @@ Creates animated contour lines that behave like a flowing liquid surface. The ef
 
 --
 
-| Topographic Effect 1 | Topographic Effect 2 | Topographic Effect 3 | 
-|:---:|:---:|:---:|
-| ![P1](screenshots/topo1.gif) | ![P2](screenshots/topo2.gif) |  ![P3](screenshots/topo3.gif) |
+| Topographic Effect 1 | Topographic Effect 2 | Topographic Effect 3 | Topographic Effect 4 | 
+|:---:|:---:|:---:|:---:|
+| ![P1](screenshots/topog1.gif) | ![P2](screenshots/topog2.gif) |  ![P3](screenshots/topog3.gif) |  ![P4](screenshots/topog4.gif) |
 
 ---
 
