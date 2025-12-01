@@ -1,0 +1,108 @@
+// topographicflow_shader.agsl
+// Liquid-flow animated topographic lines (Android AGSL)
+
+uniform float2 resolution;
+uniform float  time;
+uniform float4 lineColor;
+uniform float4 bgColor;
+
+uniform float LINE_DENSITY;
+uniform float LINE_THICKNESS;
+uniform float NOISE_SCALE;
+uniform float NOISE_INTENSITY;
+uniform float GLOW_WIDTH_MULTIPLIER;
+uniform float GLOW_CONTRAST;
+uniform float SPEED_X;
+uniform float SPEED_Y;
+
+
+// --- Hash Noise stable ---
+float hash21(float2 p) {
+    return fract(sin(dot(p, float2(12.9898,78.233))) * 43758.5453);
+}
+
+float noise(float2 p) {
+    float2 i = floor(p);
+    float2 f = fract(p);
+    float a = hash21(i);
+    float b = hash21(i + float2(1.0, 0.0));
+    float c = hash21(i + float2(0.0, 1.0));
+    float d = hash21(i + float2(1.0, 1.0));
+    // Courbe de lissage cubique (Smoothstep 3x^2 - 2x^3)
+    float2 u = f*f*(3.0 - 2.0*f);
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// --- FBM (Fractional Brownian Motion) ---
+float fbm(float2 p) {
+    float f = 0.0;
+    float amp = 0.5;
+    for (int i = 0; i < 5; i++) { // 5 octaves pour le détail
+        f += noise(p) * amp;
+        p *= 2.0;
+        amp *= 0.5;
+    }
+    return f;
+}
+
+// --- FONCTION DE WARP LISSE (Déformation Sinusoïdale) ---
+float2 smoothSineWarp(float2 uv, float t) {
+    float2 dir;
+    // Déformation sinusoïdale simple et lisse
+    // UTILISE SPEED_X et SPEED_Y
+    dir.x = sin(uv.y * 5.0 + t * SPEED_X);
+    dir.y = cos(uv.x * 3.0 + t * SPEED_Y);
+    // Facteur d'intensité très faible pour un effet subtil et "physique"
+    dir = dir * 0.4; // Contrôle l'amplitude de la déformation
+    uv += dir;
+    return uv;
+}
+
+
+half4 main(float2 fragCoord) {
+    float2 uv = fragCoord / resolution.xy;
+    uv.x *= resolution.x / resolution.y; // Normalise X en fonction de l'aspect ratio
+    uv = uv * 2.0 - 1.0;
+
+
+    // 1. Déformation LISSE (utiliser smoothSineWarp)
+    float2 warped_uv = smoothSineWarp(uv, time * 0.4);
+    warped_uv = smoothSineWarp(warped_uv, time * 0.7);
+
+    // 2. Bruit pour l'ondulation horizontale
+    // FBM sur le UV déformé pour l'ondulation de la ligne.
+    float h_noise = fbm(warped_uv * NOISE_SCALE);
+
+    // 3. Création du champ de lignes
+    // Progression verticale (grille) + ondulation (bruit FBM)
+    float h = warped_uv.y * LINE_DENSITY + h_noise * NOISE_INTENSITY;
+
+    // 4. Transformation de la hauteur en lignes (méthode fractale classique)
+    float dist = abs(fract(h) - 0.5);
+
+    // 5. DOUBLE PASS : Ligne Nette + Lueur Floue
+    // LIGNE PRINCIPALE (Nette)
+    float lineFactor = 1.0 - smoothstep(
+        0.0,
+        LINE_THICKNESS,
+        dist
+    );
+    lineFactor = pow(lineFactor, 10.0); // Rendu très net
+
+    // LUEUR (Floue)
+    float glowFactor = 1.0 - smoothstep(
+        0.0,
+        LINE_THICKNESS * GLOW_WIDTH_MULTIPLIER, // Plus large
+        dist
+    );
+    glowFactor = pow(glowFactor, GLOW_CONTRAST); // Plus doux
+
+    // Combinaison : On ajoute la lueur (avec intensité 50%) à la ligne principale.
+    float finalFactor = clamp(lineFactor + glowFactor * 0.5, 0.0, 1.0);
+
+    // 6. Mélange de couleurs
+    half4 finalColor = mix(bgColor, lineColor, finalFactor);
+
+    // Assurez-vous que l'alpha est toujours 1.0
+    return finalColor;
+}
