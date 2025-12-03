@@ -47,7 +47,10 @@ fun AppNavHost() {
             OptimizedHolographicCardEffect(
                 modifier = Modifier.fillMaxSize(),
                 bitmap = bitmap,
-                shaderResId = R.raw.holographic_rainbow
+                shaderResId = R.raw.holographic_rainbow,
+                microDetailScale = 2f // more = unzoom , less = zoom  (on the effect...)
+
+
             )
         }
 
