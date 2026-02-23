@@ -45,7 +45,7 @@ The goal is to demonstrate the power of shaders combined with **touch input** an
 
 ## 🚀 Implemented / In Progress Features
 
-This PoC is structured around 6 major graphic effects, each designed to be manipulated by specific interactions.
+This PoC is structured around 4+ major graphic effects, each designed to be manipulated by specific interactions.
 
 ---
 
@@ -141,68 +141,32 @@ Creates animated contour lines that behave like a flowing liquid surface. The ef
 
 ---
 
-### 4. 💾 Distortion & Glitch Art *(Coming Soon)*
+### 4. 💾 Cathode-AGSL: Advanced CRT Simulation Engine *(Implemented / Stand-Alone)*
 
-Creates digital-style visual noise like chromatic aberration, glitches, and heat waves.
+High-fidelity post-processing engine for **Android Jetpack Compose** that emulates the physical behavior of **CRT monitors** and the thermal reaction of phosphor.
 
-- **Technical**:
-  - **Chromatic aberration**: shift RGB channels via UV offsets.
-  - **Glitch**: block-based displacement, color inversion, static noise.
-  - **Heat waves**: soft animated UV warping using noise.
-- **Interaction**:
-  - Reacts to **tilt/shake/tap** (accelerometer & gyroscope).
-  - Shake = glitch bursts, tilt = continuous distortion.
- 
-#### Distortion Shaders Tasks
+Unlike simple overlay filters, this shader pipeline transforms flat UI elements into an **immersive analog medium** with:
 
-- **Distortion Effects**:
-  - RGB offsets per channel (chromatic aberration).
-  - Glitch: UV jumps, color noise triggered by motion thresholds.
+- **Signal Jitter & H-Sync Instability:** stochastic pixel shifts for realistic analog “snaps”  
+- **Spherical Lens Distortion:** curved screen effect for vintage CRT feel  
+- **Shadow Mask & RGB Aberration:** sub-pixel precision for authentic phosphor separation  
+- **Thermal Reveal / Incandescence:** dynamic glow and heat trails following UI elements  
+
+The engine is fully GPU-accelerated, frame-accurate, and tunable via **uniforms**, allowing developers to inject dynamic heat, glitch bursts, or lens curvature in real time.
+
+---
+
+**Standalone Repository:** [Cathode-AGSL Shader Engine](https://JumpingKeyCaps/Cathode-AGSL)
+
+--
+
+| CRT + text Laser displayer shaders   | CRT shader over pictures gallery | Signal Jitter & H-Sync Instability | CRT shader over text (scroll demo) |
+|:---:|:---:|:---:|:---:|
+| ![P1](screenshots/cathodedemo2.gif) | ![P2](screenshots/cathodedemo3.gif) | ![P3](screenshots/cathodedemo7.gif) | ![P4](screenshots/cathodedemo1.gif) |
 
 
 ---
 
-### 5. ⚡ Electric Sparks & Lightning *(Coming Soon)*
-
-Generates stylized lightning bolts and crackling energy sparks across the screen.
-
-- **Technical**:
-  - Ray effect: Animate noise-based jagged lines from origin point.
-  - Glow pulse: Use radial blur for glow around spark lines.
-  - Flash animation: Sync light pulses with strike origin.
-- **Interaction**:
-  - Tap to emit spark.
-  - Shake triggers bigger lightning strike + screen flash.
-
----
-
-### 6. 🔍 Fisheye & Cathodic CRT Effect *(To Evaluate)*
-
-Simulates vintage CRT screen visuals with fisheye distortion, scanlines, chromatic aberration, and screen curvature.
-
-- **Technical**:  
-  - UV remapping for fisheye/pincushion distortion.  
-  - Animated scanlines and vignette.  
-  - RGB channel offset for chromatic aberration.  
-  - Optional glow or blur for phosphorescent look.
-
-- **Interaction**:  
-  - Triggered by tap/tilt/shake.
-  - Speed of shake affects glitch severity and block size.
-
----
-
-### 7. ❄️ Frosted Glass / Frost Effect *(To Evaluate)*
-
-Blurs and distorts the image as if viewed through frosted glass.
-
-- **Technical**:
-  - Multiple samples around each pixel with random offsets (approximate blur).
-  - Overlay of animated frost crystals using noise and fractal shapes.
-- **Interaction**:
-  - Touch to add frost, shake to reset.
-
----
 
 ### 📱 Sensor Integration
 
@@ -224,6 +188,7 @@ Blurs and distorts the image as if viewed through frosted glass.
 
 ---
 
+“Pushing pixels, bending light, and making Android screens behave like magic.”
 
 
 
