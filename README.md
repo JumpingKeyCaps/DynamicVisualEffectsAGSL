@@ -156,7 +156,7 @@ The engine is fully GPU-accelerated, frame-accurate, and tunable via **uniforms*
 
 ---
 
-**Standalone Repository:** [Cathode-AGSL Shader Engine](https://JumpingKeyCaps/Cathode-AGSL)
+**Standalone Repository:** [Cathode-AGSL Shader Engine](https://github.com/JumpingKeyCaps/Cathode-AGSL)
 
 --
 
