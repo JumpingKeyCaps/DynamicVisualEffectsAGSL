@@ -23,7 +23,7 @@ The goal is to demonstrate the power of shaders combined with **touch input** an
 
 ---
 
-## 🎯 PoC Objectives
+## 💯 PoC Objectives
 
 - **🧠 AGSL Mastery**: Master complex fragment shaders and animation logic.
 - **🖼️ Visual Quality**: Aim for realism or high stylization per effect.
@@ -43,13 +43,33 @@ The goal is to demonstrate the power of shaders combined with **touch input** an
 
 ---
 
-## 🚀 Implemented / In Progress Features
+### 📱 Sensor Integration
 
-This PoC is structured around 4+ major graphic effects, each designed to be manipulated by specific interactions.
+- **Sensor Access**:
+  - Use Android `SensorManager` to get accel/gyro data.
+- **Preprocessing**:
+  - Normalize, smooth, and convert to usable vectors.
+- **Shader Inputs**:
+  - Pass vectors to shaders as `u_acceleration`, `u_orientation`.
 
 ---
 
-### 1. 💧 Water Effect *(Implemented)*
+### 👆 Touch & Gesture Control
+
+(not available on all shaders)
+
+- **Gesture Detection**:
+  - Map tap, long-press, swipe, pinch → shader triggers.
+- **Param Mapping**:
+  - Gesture data (position, pressure, velocity) → uniforms.
+
+## 🚧 Implemented / In Progress Features
+
+This PoC is structured around major graphic effects, each designed to be manipulated by specific interactions.
+
+---
+
+### 1. 🌊 Water Effect *(Implemented)*
 
 Simulates realistic ripples and refractions on a bitmap using a dynamic AGSL shader.
 
@@ -76,7 +96,7 @@ Simulates realistic ripples and refractions on a bitmap using a dynamic AGSL sha
 
 Simulates a dynamic holographic foil effect, with angle-sensitive iridescence, rainbow interference patterns, and chromatic distortion — all modulated in real time by the device’s physical orientation.
 
-#### 🧪 Technical Highlights:
+#### Technical Highlights:
 
  - Procedural iridescence using multi-layered FBM noise and enhanced HSV rainbow mapping.
 
@@ -91,7 +111,7 @@ Simulates a dynamic holographic foil effect, with angle-sensitive iridescence, r
  - Darkness-based masking ensures the effect appears only in low-luminance areas (e.g., shadowed or black ink zones).
 
 
-#### 🧠 Interaction Design:
+#### Interaction Design:
 
  - Reacts to device orientation (pitch & roll) via TYPE_ROTATION_VECTOR sensor.
 
@@ -111,7 +131,7 @@ Simulates a dynamic holographic foil effect, with angle-sensitive iridescence, r
 
 ---
 
-### 3. 🌀 Liquid Topographic Flow *(Implemented)*
+### 3. 🌫️ Liquid Topographic Flow *(Implemented)*
 
 Creates animated contour lines that behave like a flowing liquid surface. The effect blends smooth sinusoidal warping with multi-octave FBM noise to produce organic, fluid-like motions across a virtual topographic map.
 
@@ -140,7 +160,7 @@ Creates animated contour lines that behave like a flowing liquid surface. The ef
 
 ---
 
-### 4. 💾 Cathode-AGSL: Advanced CRT Simulation Engine *(Implemented / Stand-Alone)*
+### 4. 📺 Cathode-AGSL: Advanced CRT Simulation Engine *(Implemented / Stand-Alone)*
 
 High-fidelity post-processing engine for **Android Jetpack Compose** that emulates the physical behavior of **CRT monitors** and the thermal reaction of phosphor.
 
@@ -190,33 +210,14 @@ Key Features:
 | ![P1](screenshots/classic2.gif) | ![P2](screenshots/advanced.gif) |  ![P3](screenshots/interactive1.gif) | ![P2](screenshots/interactive2.gif) |
 
 
----
-
-
-
-
-
-### 📱 Sensor Integration
-
-- **Sensor Access**:
-  - Use Android `SensorManager` to get accel/gyro data.
-- **Preprocessing**:
-  - Normalize, smooth, and convert to usable vectors.
-- **Shader Inputs**:
-  - Pass vectors to shaders as `u_acceleration`, `u_orientation`.
 
 ---
 
-### 🧠 Touch & Gesture Control
-
-- **Gesture Detection**:
-  - Map tap, long-press, swipe, pinch → shader triggers.
-- **Param Mapping**:
-  - Gesture data (position, pressure, velocity) → uniforms.
+```
+More coming soon ... 😉❤️
+```
 
 ---
-
-“Pushing pixels, bending light, and making Android screens behave like magic.”
-
+`“Pushing pixels, bending light, and making Android screens behave like magic.”`
 
 
