@@ -103,11 +103,10 @@ Simulates a dynamic holographic foil effect, with angle-sensitive iridescence, r
 
 --
 
-| Holographic Effect 1 | Holographic Effect 2 | Holographic Effect 3 | 
-|:---:|:---:|:---:|
-| ![P1](screenshots/holo3.gif) | ![P2](screenshots/holo1.gif) |  ![P3](screenshots/holo2.gif) |
-| Rainbows Effect | Rainbows Effect alt | Iridescent Effect | 
-| ![P4](screenshots/holo4.gif) | ![P5](screenshots/holo5.gif) |  ![P6](screenshots/holo6.gif) |
+| Holographic Effect | Rainbows Effect | Rainbows Effect alt | Iridescent Effect |
+|:---:|:---:|:---:|:---:|
+| ![P1](screenshots/holo1.gif) | ![P2](screenshots/holo5.gif) |  ![P3](screenshots/holo4.gif) | ![P4](screenshots/holo6.gif) |
+
 
 
 ---
