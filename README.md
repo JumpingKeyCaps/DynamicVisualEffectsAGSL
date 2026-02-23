@@ -129,6 +129,10 @@ Creates animated contour lines that behave like a flowing liquid surface. The ef
 - **Interaction**:  
   Fully animatable through uniforms (speed, intensity, density) and compatible with touch or sensor input to influence distortion fields or flow direction.
 
+---
+
+**Standalone Repository:** [FlowRibbon: Hypnotic AGSL Shader](https://github.com/JumpingKeyCaps/FlowRibbonAGSL)
+
 --
 
 | Topographic Effect 1 | Topographic Effect 2 | Topographic Effect 3 | Topographic Effect 4 | 
