@@ -167,6 +167,35 @@ The engine is fully GPU-accelerated, frame-accurate, and tunable via **uniforms*
 
 ---
 
+### 5. 🧬 AGSL Organic Cell Engine *(Implemented / Stand-Alone)*
+
+High-performance **interactive background engine** for Jetpack Compose that brings **living, breathing organic patterns** to your UI. Based on **Dynamic Voronoi Tessellation**, it simulates cell membranes that merge, split, and react to touch in real-time, giving the impression of a physical, fluid surface rather than a flat shader.
+
+Key Features:
+
+- **Reactive Touch Fields:** Finger input creates repulsion/attraction forces on cell nuclei for realistic viscosity effects  
+- **Dual-Layer Voronoi:** Macro and Detail layers provide smooth motion plus intricate parallax depth  
+- **Emotion-Driven Color Palettes:** Smooth transitions between Calm (Idle), Active, and Alert states  
+- **Glitch-Free Fluidity:** Extended neighborhood search (5x5 grid) ensures topology integrity even under extreme distortion  
+- **GPU Optimized:** Per-pixel AGSL calculations with minimal CPU overhead for high frame-rate performance
+
+---
+
+**Standalone Repository:** [AGSL Organic Cell Engine](https://github.com/JumpingKeyCaps/OrganicCellEngineAGSL)
+
+--
+
+
+| Alt Organic Cell Shader | Advanced Organic Cell layers Shader | Interactive Organic Cell Shader | Alt Interactive Organic Cell Shader | 
+|:---:|:---:|:---:|:---:|
+| ![P1](screenshots/classic2.gif) | ![P2](screenshots/advanced.gif) |  ![P3](screenshots/interactive1.gif) | ![P2](screenshots/interactive2.gif) |
+
+
+---
+
+
+
+
 
 ### 📱 Sensor Integration
 
