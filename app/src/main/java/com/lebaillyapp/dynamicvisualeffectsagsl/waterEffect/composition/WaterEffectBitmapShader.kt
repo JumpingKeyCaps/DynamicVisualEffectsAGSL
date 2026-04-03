@@ -4,7 +4,7 @@ import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import androidx.annotation.RawRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,21 +28,36 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lebaillyapp.dynamicvisualeffectsagsl.waterEffect.viewmodel.WaterViewModel
+import java.io.File
 
 @Composable
 fun WaterEffectBitmapShader(
     modifier: Modifier = Modifier,
     bitmap: ImageBitmap,
     viewModel: WaterViewModel = viewModel(),
-    @RawRes shaderResId: Int
+    @RawRes shaderResId: Int,
+    shaderName: String
 ) {
     val context = LocalContext.current
 
-    // Load shader code once
-    val shaderCode = remember {
-        context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+    // Load shader code: check internal storage first, then fallback to resources
+    val file = remember(shaderName) { File(context.filesDir, "$shaderName.agsl") }
+    val shaderCode = remember(shaderName, file.lastModified()) {
+        if (file.exists()) {
+            file.readText()
+        } else {
+            context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+        }
     }
-    val shader = remember { RuntimeShader(shaderCode) }
+    val shader = remember(shaderCode) {
+        try {
+            RuntimeShader(shaderCode)
+        } catch (_: Exception) {
+            // Fallback to default if user code fails
+            val defaultCode = context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+            RuntimeShader(defaultCode)
+        }
+    }
 
     // Track animation time in seconds (consistent with shader)
     var currentTimeSeconds by remember { mutableFloatStateOf(0f) }
@@ -85,23 +100,21 @@ fun WaterEffectBitmapShader(
     val renderEffect = RenderEffect.createRuntimeShaderEffect(shader, "inputShader").asComposeRenderEffect()
 
     val touchModifier = Modifier.pointerInput(Unit) {
-        forEachGesture {
-            awaitPointerEventScope {
-                val event = awaitPointerEvent()
-                event.changes.forEach { change ->
+        awaitEachGesture {
+            val event = awaitPointerEvent()
+            event.changes.forEach { change ->
+                if (change.pressed) {
+                    viewModel.addWave(change.position, change.id.value.toInt(), currentTimeSeconds)
+                }
+            }
+            while (true) {
+                val move = awaitPointerEvent()
+                move.changes.forEach { change ->
                     if (change.pressed) {
                         viewModel.addWave(change.position, change.id.value.toInt(), currentTimeSeconds)
                     }
                 }
-                while (true) {
-                    val move = awaitPointerEvent()
-                    move.changes.forEach { change ->
-                        if (change.pressed) {
-                            viewModel.addWave(change.position, change.id.value.toInt(), currentTimeSeconds)
-                        }
-                    }
-                    if (move.changes.all { !it.pressed }) break
-                }
+                if (move.changes.all { !it.pressed }) break
             }
         }
     }

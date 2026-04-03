@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.toSize
 import kotlinx.coroutines.delay
+import java.io.File
 import kotlin.math.PI
 import android.util.Log
 
@@ -39,6 +40,7 @@ fun UltraRealisticHolographicEffectShader(
     modifier: Modifier = Modifier,
     bitmap: ImageBitmap,
     @RawRes shaderResId: Int,
+    shaderName: String,
 
     // Effets principaux (simplifiés)
     effectIntensity: Float = 0.8f,
@@ -126,10 +128,23 @@ fun UltraRealisticHolographicEffectShader(
         }
     }
 
-    val shaderCode = remember {
-        context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+    // Load shader code: check internal storage first, then fallback to resources
+    val file = remember(shaderName) { File(context.filesDir, "$shaderName.agsl") }
+    val shaderCode = remember(shaderName, file.lastModified()) {
+        if (file.exists()) {
+            file.readText()
+        } else {
+            context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+        }
     }
-    val shader = remember { RuntimeShader(shaderCode) }
+    val shader = remember(shaderCode) {
+        try {
+            RuntimeShader(shaderCode)
+        } catch (_: Exception) {
+            val defaultCode = context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+            RuntimeShader(defaultCode)
+        }
+    }
 
     var composableSize by remember { mutableStateOf(Size.Zero) }
 
