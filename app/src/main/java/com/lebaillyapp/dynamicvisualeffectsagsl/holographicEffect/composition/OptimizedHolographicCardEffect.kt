@@ -30,6 +30,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.toSize
+import java.io.File
 import kotlin.math.PI
 
 @Composable
@@ -37,6 +38,7 @@ fun OptimizedHolographicCardEffect(
     modifier: Modifier = Modifier,
     bitmap: ImageBitmap,
     @RawRes shaderResId: Int,
+    shaderName: String,
 
     // === PARAMÈTRES D'ENTRÉE CONTROLLABLES EXTERNEMENT ===
     hologramStrength: Float = 1.5f,                 // Opacité de l’effet holographique (sur les zones sombres)
@@ -96,11 +98,22 @@ fun OptimizedHolographicCardEffect(
     }
 
     // === LECTURE DU SHADER CODE ===
-    val shaderCode = remember {
-        context.resources.openRawResource(shaderResId)
-            .bufferedReader().use { it.readText() }
+    val file = remember(shaderName) { File(context.filesDir, "$shaderName.agsl") }
+    val shaderCode = remember(shaderName, file.lastModified()) {
+        if (file.exists()) {
+            file.readText()
+        } else {
+            context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+        }
     }
-    val shader = remember { RuntimeShader(shaderCode) }
+    val shader = remember(shaderCode) {
+        try {
+            RuntimeShader(shaderCode)
+        } catch (_: Exception) {
+            val defaultCode = context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+            RuntimeShader(defaultCode)
+        }
+    }
 
     // === MESURE DU COMPOSANT POUR SET uResolution ===
     var composableSize by remember { mutableStateOf(Size.Zero) }

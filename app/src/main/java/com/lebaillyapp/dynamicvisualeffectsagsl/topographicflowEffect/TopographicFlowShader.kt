@@ -1,17 +1,12 @@
 package com.lebaillyapp.dynamicvisualeffectsagsl.topographicflowEffect
 
 import android.graphics.RuntimeShader
+import androidx.annotation.RawRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameMillis
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,40 +14,59 @@ import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.platform.LocalContext
 import com.lebaillyapp.dynamicvisualeffectsagsl.R
 import com.lebaillyapp.dynamicvisualeffectsagsl.topographicflowEffect.model.TopographicFlowConfig
+import java.io.File
 
 
 @Composable
-fun TopographicFlowShader(modifier: Modifier) {
+fun TopographicFlowShader(
+    modifier: Modifier,
+    @RawRes shaderResId: Int,
+    shaderName: String = "topographicflow_shader"
+) {
     val context = LocalContext.current
-    val config = remember {
-        TopographicFlowConfig(
-            lineDensity = 25.0f,
-            lineThickness = 0.15f,
-            noiseScale = 1.0f,
-            noiseIntensity = 0.5f,
-            speedX = 0.20f,
-            speedY = 0.25f,
-            glowWidthMultiplier = 1.1f,
-            glowContrast = 0.5f
-        )
-    } // Valeurs par défaut finales
+    val prefs = remember { context.getSharedPreferences("topo_settings", android.content.Context.MODE_PRIVATE) }
 
-    // 1. Chargement du shader depuis res/raw
-    val shaderSource = remember {
-        try {
-            // Utiliser R.raw.liquidflow (ajustez si le nom de fichier est différent)
-            context.resources
-                .openRawResource(R.raw.topographicflow_shader)
-                .bufferedReader()
-                .use { it.readText() }
-        } catch (e: Exception) {
-            // Gestion d'erreur
-            throw IllegalStateException("Impossible de charger le shader AGSL.", e)
+    val config = remember(
+        prefs.getFloat("lineDensity", 15f),
+        prefs.getFloat("lineThickness", 0.05f),
+        prefs.getFloat("noiseScale", 1f),
+        prefs.getFloat("noiseIntensity", 0.25f),
+        prefs.getFloat("speedX", 0.20f),
+        prefs.getFloat("speedY", 0.05f),
+        prefs.getFloat("glowWidth", 1.1f),
+        prefs.getFloat("glowContrast", 0.5f)
+    ) {
+        TopographicFlowConfig(
+            lineDensity = prefs.getFloat("lineDensity", 15f),
+            lineThickness = prefs.getFloat("lineThickness", 0.05f),
+            noiseScale = prefs.getFloat("noiseScale", 1f),
+            noiseIntensity = prefs.getFloat("noiseIntensity", 0.25f),
+            speedX = prefs.getFloat("speedX", 0.20f),
+            speedY = prefs.getFloat("speedY", 0.05f),
+            glowWidthMultiplier = prefs.getFloat("glowWidth", 1.1f),
+            glowContrast = prefs.getFloat("glowContrast", 0.5f)
+        )
+    }
+
+    // Load shader code: check internal storage first, then fallback to resources
+    val file = remember(shaderName) { File(context.filesDir, "$shaderName.agsl") }
+    val shaderSource = remember(shaderName, file.lastModified()) {
+        if (file.exists()) {
+            file.readText()
+        } else {
+            context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
         }
     }
 
-    // 2. Création du RuntimeShader
-    val shader = remember(shaderSource) { RuntimeShader(shaderSource) }
+    // 2. Création du RuntimeShader avec fallback
+    val shader = remember(shaderSource) {
+        try {
+            RuntimeShader(shaderSource)
+        } catch (_: Exception) {
+            val defaultCode = context.resources.openRawResource(shaderResId).bufferedReader().use { it.readText() }
+            RuntimeShader(defaultCode)
+        }
+    }
 
     // 3. Animation du temps
     var time by remember { mutableFloatStateOf(0f) }
